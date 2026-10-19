@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="assets/core.css">
 <link rel="stylesheet" href="assets/data.css">
+<link rel="stylesheet" href="assets/scen.css">
 </head>
 <body>
 <main>
@@ -152,6 +153,15 @@
     <div class="fig" id="fig-answer"></div>
   </section>
 
+  <section class="idea col" id="s-scen">
+    <h2>ออกแบบตารางจากโจทย์เรื่องราว<span class="en">Scenario → tables → ERD</span></h2>
+    <p class="key">โจทย์อีกแบบไม่ให้ตารางมา ให้แค่เรื่องเล่า วิธีคิดมี 6 ขั้นเสมอ: คำนามคือ [[entity]], รายละเอียดคือ field, เลือก [[pk]], หาความสัมพันธ์ (M:N ต้องมีตารางกลาง), วาง [[fk]] ที่ฝั่ง many และตัดค่าที่คำนวณได้ทิ้ง</p>
+    <p>ตัวอย่างแรกคือแบบฝึกหัด ABC ในสไลด์ (รายงานยอดขายตามสาขา รัฐ ประเทศ) อีก 3 เรื่องเป็นโจทย์ฝึกแบบเดียวกัน เลือกเรื่องแล้วเลื่อนดูทีละขั้น</p>
+    <div class="fig" id="fig-scen"></div>
+    <p>ผลลัพธ์ที่ได้อยู่ใน 3NF ทันทีถ้าทำครบ 6 ขั้น เพราะแต่ละตารางเก็บเรื่องเดียว ข้อมูลของ entity อื่นอ้างผ่าน FK เท่านั้น ในข้อสอบให้เขียนแบบ standard notation แล้วตามด้วย ERD</p>
+    <div id="q-scen"></div>
+  </section>
+
   <section class="idea col" id="s-use">
     <h2>ใช้ข้อมูลที่เก็บไว้: warehouse, mart, mining<span class="en">Data storage and access</span></h2>
     <p class="key">[[warehouse]] รวมข้อมูลจากหลายระบบทั่วบริษัทไว้ที่เดียว [[mart]] คือคลังย่อยที่ออกแบบให้แผนกเดียวใช้ และ [[mining]] คือการหา pattern ในข้อมูลเหล่านั้น</p>
@@ -169,5 +179,10 @@
 <script src="assets/core.js"></script>
 <script src="assets/data-concepts.js"></script>
 <script src="data.js"></script>
+<script src="assets/scenarios.js"></script>
+<script>
+  Scen.figure(Hop.$('#fig-scen'));
+  Hop.mcq(Hop.$('#q-scen'), { q: 'โจทย์: "นิสิตหนึ่งคนลงทะเบียนได้หลายวิชา และแต่ละวิชามีนิสิตลงหลายคน ต้องเก็บเกรดของแต่ละวิชา" เกรดควรอยู่ตารางไหน', opts: ['ตารางกลาง Enroll (Std_Id, Course_Id, Semester, Grade)', 'ตาราง Student', 'ตาราง Course', 'ไม่ต้องเก็บ เพราะคำนวณได้'], a: 0, why: 'เกรดขึ้นกับคู่ นิสิต + วิชา (+ ภาคเรียน) ไม่ได้ขึ้นกับฝั่งใดฝั่งเดียว จึงอยู่ในตารางกลางของความสัมพันธ์ M:N', whyWrong: { 1: 'นิสิตคนเดียวมีหลายเกรด ถ้าเก็บใน Student จะเกิด repeating group', 2: 'วิชาเดียวมีหลายเกรดจากหลายนิสิต เก็บใน Course ไม่ได้', 3: 'เกรดรายวิชาเป็นข้อมูลที่ป้อนเข้ามา คำนวณไม่ได้ ที่คำนวณได้คือ GPA' } });
+</script>
 </body>
 </html>

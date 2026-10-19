@@ -1,0 +1,30 @@
+/* scenario → tables figure */
+.scn-seg { flex-wrap: wrap; }
+.scn-text { font-size: 17px; line-height: 2; margin: 16px 2px 6px; text-wrap: pretty; }
+.scn-text mark.nn { background: var(--c-violet-s); color: var(--c-violet); font-weight: 600; padding: 2px 6px; border-radius: 8px; animation: nnIn 420ms var(--ease) both; }
+.scn-text mark.nn sub { font: 600 11px var(--mono); margin-left: 4px; color: var(--muted); vertical-align: baseline; }
+@keyframes nnIn { from { background: transparent; } }
+.scn-board { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; margin-top: 14px; }
+.scn-card { background: var(--surface); border-radius: 18px; padding: 12px 12px 10px; animation: cardIn 380ms var(--ease) both; }
+.scn-card.assoc { background: var(--c-amber-s); }
+@keyframes cardIn { from { opacity: 0; transform: translateY(8px); } }
+.scn-card .h { font: 700 16px var(--mono); margin-bottom: 6px; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.scn-card .h span { font: 500 13px var(--font); color: var(--muted); }
+.scn-card.assoc .h span { color: var(--c-amber); }
+.scn-card .fr { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; font: 500 14px/1.5 var(--mono); padding: 4px 6px; border-radius: 8px; }
+.scn-card .fr .ty { grid-column: 1 / -1; font-size: 12px; color: var(--c-teal); }
+.scn-card .fr .tg { font: 700 11px var(--mono); color: var(--muted); align-self: center; }
+.scn-card .fr.pk .fn { text-decoration: underline; text-underline-offset: 3px; color: var(--c-amber); }
+.scn-card .fr.pk .tg { color: var(--c-amber); }
+.scn-card .fr.fk .fn { color: var(--c-rose); }
+.scn-card .fr.fk.pk .fn { color: var(--c-amber); }
+.scn-card .fr.fk .tg { color: var(--c-rose); }
+.scn-card .fr.new { animation: rowIn 700ms var(--ease) both; }
+@keyframes rowIn { from { background: var(--accent-soft); opacity: 0; transform: translateX(-6px); } 40% { opacity: 1; transform: none; } }
+.scn-extra { display: grid; gap: 10px; margin-top: 12px; }
+.scn-rels { display: grid; gap: 6px; font: 500 14px var(--mono); }
+.scn-rels div { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.scn-rels span { font: 400 14px var(--font); color: var(--muted); }
+.scn-calc div { font-size: 15px; color: var(--ink-2); margin: 4px 0; }
+.scn-calc s { color: var(--c-rose); font-weight: 600; }
+.scn-calc .nt { color: var(--muted); font-size: 14px; }

@@ -16,7 +16,7 @@ function card(num, title, pts, build, reroll) {
     const show = el('button', { class: 'btn primary', html: `${icon('eye')} ดูวิธีทำ` });
     show.onclick = () => { show.remove(); Hop.work(wHost, q.work, { stagger: 70 }); $$('.ln', wHost).forEach((x, i) => { if (q.work[i] && q.work[i].h) x.classList.add('h'); }); };
     const bar = el('div', { class: 'bar2' }, show);
-    if (reroll) bar.append(el('button', { class: 'btn', html: `${icon('shuffle')} สุ่มตัวเลขใหม่`, onclick: () => { render(); box.scrollIntoView({ behavior: 'smooth', block: 'start' }); } }));
+    if (reroll) bar.append(el('button', { class: 'btn', html: `${icon('shuffle')} ${typeof reroll === 'string' ? reroll : 'สุ่มตัวเลขใหม่'}`, onclick: () => { render(); box.scrollIntoView({ behavior: 'smooth', block: 'start' }); } }));
     body.replaceChildren(...[el('div', { class: 'prompt', html: q.prompt }), q.given ? el('div', { class: 'given tw', html: q.given }) : null, bar, wHost].filter(Boolean));
   }
   render();
@@ -129,6 +129,16 @@ card(2, 'Normalization และ ER-Diagram', 'บรรยาย/ออกแ�
     { t: 'นัดหมาย กับ หัตถการ เป็น M:N จึงแยกด้วย associative entity "รายการหัตถการ"', note: true },
   ],
 }), false);
+
+
+/* ---------- Q2B: design tables from a scenario ---------- */
+{
+  const ORDER = ['lib', 'reg', 'shop']; let k = Hop.rnd(0, 2);
+  card('2B', 'ออกแบบฐานข้อมูลจากเรื่องราว', 'ออกแบบ (แนวทางเลือกของข้อ 2)', () => {
+    const sc = Scen.S[ORDER[k++ % 3]];
+    return { prompt: 'จากโจทย์ต่อไปนี้<ol><li>ระบุ entity ทั้งหมด</li><li>ออกแบบตารางแบบ standard notation ระบุ PK และ FK</li><li>ระบุความสัมพันธ์และ cardinality แล้ววาด ER-Diagram</li><li>กำหนดชนิดข้อมูลของแต่ละ field</li></ol>', given: Scen.plain(sc), work: Scen.answer(sc) };
+  }, 'สุ่มโจทย์ใหม่');;
+}
 
 /* ---------- Q3: payback, discounted payback, NPV ---------- */
 card(3, 'Payback, Discounted Payback และ NPV', 'คำนวณ', () => {
