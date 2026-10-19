@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="th" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ข้อสอบจำลอง | Spec</title>
+<meta name="theme-color" content="#0F0F12">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="assets/core.css">
+<link rel="stylesheet" href="assets/plan.css">
+<style>
+  .xq { max-width: var(--col); margin: 0 auto; padding: 34px 0 10px; border-top: 1px solid var(--line); }
+  .xq:first-of-type { border-top: 0; }
+  .xq h2 { font-size: clamp(24px, 4vw, 30px); letter-spacing: -.025em; margin: 0 0 4px; line-height: 1.25; }
+  .xq h2 .num { color: var(--accent); font-family: var(--mono); margin-right: 10px; }
+  .xq .pts { color: var(--muted); font-size: 14px; }
+  .xq .prompt { font-size: 17px; line-height: 1.75; margin: 14px 0; }
+  .xq .prompt ol { padding-left: 1.4em; margin: 8px 0; } .xq .prompt li { margin: 4px 0; }
+  .xq .given { background: var(--band); border-radius: 22px; padding: 16px; margin: 14px 0; }
+  .xq .bar2 { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+  .xq .work .ln.h { color: var(--accent); font-weight: 700; margin-top: 8px; }
+</style>
+</head>
+<body>
+<main class="col">
+  <header class="head">
+    <h1>ข้อสอบจำลอง</h1>
+    <p class="lede">5 ข้อตามแนวที่อาจารย์ประกาศ: เนื้อหาหลังกลางภาค มีบรรยายและคำนวณ เขียนคำตอบลงกระดาษก่อน แล้วกดดูวิธีทำเพื่อเทียบ ข้อคำนวณกดสุ่มตัวเลขใหม่ได้ไม่จำกัด</p>
+  </header>
+  <div id="qs"></div>
+</main>
+<script src="assets/core.js"></script>
+<script src="exam.js"></script>
+</body>
+</html>

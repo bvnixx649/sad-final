@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="th" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ออกแบบฐานข้อมูล | Spec</title>
+<meta name="theme-color" content="#0F0F12">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="assets/core.css">
+<link rel="stylesheet" href="assets/data.css">
+</head>
+<body>
+<main>
+  <div class="col head">
+    <h1>ออกแบบฐานข้อมูล</h1>
+    <p class="lede">ข้อสอบให้ตารางเดียวที่ยัดทุกอย่างไว้ด้วยกัน แล้วสั่งให้ [[norm|normalize]] ถึง 3NF โดยระบุ [[pk]], [[fk]] และ [[fd|dependency]] ของทุกขั้น จากนั้นวาด [[erd]] พร้อม [[cardinality]] ท้ายบทมีแม่แบบคำตอบที่เขียนตามได้ทีละขั้น</p>
+  </div>
+
+  <div class="fig map" id="map"></div>
+
+  <section class="idea col" id="s-file">
+    <h2>เก็บข้อมูลที่เดียว ใช้ร่วมกันทุกระบบ<span class="en">File processing vs Database</span></h2>
+    <p class="key">ระบบแบบ [[filesys]] ให้แต่ละระบบมีไฟล์ของตัวเอง ข้อมูลเดียวกันจึงถูกเก็บซ้ำหลายที่ ([[redundancy]]) ส่วน [[database]] เก็บครั้งเดียวแล้วให้ทุกระบบใช้ร่วมกัน</p>
+    <p>ร้านของ Mario ใช้สองระบบแยกกัน ร้านของ Danica ใช้ฐานข้อมูลเดียว (สไลด์ 3) ลองเปลี่ยนเบอร์โทรลูกค้าในทั้งสองแบบ</p>
+    <div class="fig in-col" id="fig-file"></div>
+    <p>file processing ยังมีที่ใช้ เมื่อต้องประมวลผลข้อมูลโครงสร้างตายตัวปริมาณมากเป็นประจำ เช่น บริษัทบัตรเครดิตที่ลงรายการวันละหลายพันรายการ ในกรณีนั้นคุ้มค่ากว่า ข้อดีของ database ที่สไลด์สรุปไว้มี 6 ข้อ:</p>
+    <ul>
+      <li>[[scal]]: ขยาย แก้ไข หรือลดขนาดระบบได้</li>
+      <li>[[econ]]: ใช้ฮาร์ดแวร์ได้คุ้มขึ้น</li>
+      <li>ระดับองค์กร: มี [[dba]] ประเมินความต้องการภาพรวมและดูแลฐานข้อมูล</li>
+      <li>[[stdz]]: ชื่อ รูปแบบ เอกสารเหมือนกันทั้งองค์กร</li>
+      <li>[[secur]]: เฉพาะผู้มีสิทธิ์ และแต่ละคนได้ระดับต่างกัน</li>
+      <li>[[indep]]: ระบบไม่ผูกกับวิธีเก็บข้อมูลจริง</li>
+    </ul>
+  </section>
+
+  <section class="idea col" id="s-dbms">
+    <h2>DBMS ประกอบด้วยอะไร<span class="en">DBMS components</span></h2>
+    <p class="key">[[dbms]] คือระบบที่ช่วยจัดการข้อมูลในฐานข้อมูล (เพิ่ม แก้ ลบ) เช่น Access, Oracle, MySQL มี 4 ส่วนที่ต้องจำ: [[iface|interface]] ของผู้ใช้ DBA และระบบอื่น, [[dml]], [[schema]] กับ [[subschema]], และ [[repo|physical data repository]]</p>
+    <p>เลือกว่าใครเป็นคนส่งคำสั่ง แล้วเลื่อนดูเส้นทางของคำสั่งหนึ่งคำสั่งผ่านแต่ละส่วน กล่อง schema คือทุกตารางในฐานข้อมูล ส่วนที่สว่างขึ้นคือ subschema ของคนนั้น</p>
+    <div class="fig" id="fig-dbms"></div>
+    <p>เมื่อต่อฐานข้อมูลเข้ากับเว็บ ต้องมี [[middleware]] คั่นกลาง เพราะฐานข้อมูลใช้ภาษาและคำสั่งที่ไม่เกี่ยวกับ HTML เลย ข้อมูลบนเว็บต้องปลอดภัย แต่ผู้มีสิทธิ์ก็ต้องเข้าถึงได้ง่าย</p>
+  </section>
+
+  <section class="idea col" id="s-terms">
+    <h2>ศัพท์ตาราง: entity, field, record<span class="en">Data design terms</span></h2>
+    <p class="key">[[entity]] คือสิ่งที่เราเก็บข้อมูล (คน สถานที่ สิ่งของ เหตุการณ์) แต่ละ entity ได้ [[table]] หนึ่งตาราง คอลัมน์คือ [[field]] แถวคือ [[record]] และ field ที่โผล่ในหลายตารางเรียก [[commonfield]]</p>
+    <p>เลือกศัพท์แล้วดูว่ามันชี้ที่ส่วนไหนของตาราง หรือแตะส่วนของตารางเอง</p>
+    <div class="fig" id="fig-terms"></div>
+  </section>
+
+  <section class="idea col" id="s-keys">
+    <h2>Key: field ที่ระบุแถว<span class="en">Primary, combination, candidate, foreign, secondary</span></h2>
+    <p class="key">[[pk]] คือ field (หรือหลาย field รวมกัน) ที่ระบุแถวได้เจาะจงเพียงแถวเดียวและไม่เกินจำเป็น ถ้าต้องใช้หลาย field เรียก [[combkey]] ตัวเลือกอื่นที่เป็น PK ได้เรียก [[candkey]] field ที่ชี้ไป PK ของอีกตารางคือ [[fk]] และ field ที่ใช้ค้นหาโดยไม่ต้อง unique คือ [[seckey]]</p>
+    <p>แตะหัวคอลัมน์ของตาราง STUDENT เพื่อเลือก field (เลือกได้หลายตัว) ระบบจะตรวจว่ากลุ่มที่เลือกระบุแถวได้เจาะจงและไม่เกินจำเป็นไหม</p>
+    <div class="fig" id="fig-keys"></div>
+    <div id="q-keys"></div>
+  </section>
+
+  <section class="idea col" id="s-ri">
+    <h2>Referential integrity: FK ต้องชี้ถึงของจริง<span class="en">Referential integrity</span></h2>
+    <p class="key">[[ri]] คือชุดกฎกันข้อมูลขัดแย้ง ใจความคือค่า FK ต้องตรงกับ PK ที่มีอยู่จริงเสมอ จึงเพิ่มลูกที่ไม่มีแม่ไม่ได้ และลบแม่ที่ยังมีลูกไม่ได้</p>
+    <p>CUSTOMER ถือ PK (แม่) ORDER ถือ FK (ลูก) ลองสั่งทั้งสี่แบบ ทั้งตอนเปิดและปิดกฎ แล้วดูว่าตารางเสียหายแบบไหน</p>
+    <div class="fig" id="fig-ri"></div>
+    <div id="q-ri"></div>
+  </section>
+
+  <section class="idea col" id="s-rel">
+    <h2>ความสัมพันธ์ 1:1, 1:M, M:N<span class="en">Entity-Relationship Diagram</span></h2>
+    <p class="key">ใน [[erd]] entity เป็นกล่องที่ตั้งชื่อด้วยคำนามเอกพจน์ ความสัมพันธ์เป็นเส้นที่ตั้งชื่อด้วยคำกริยา มี 3 แบบ: [[r11]], [[r1m]] และ [[rmn]] ซึ่งเก็บตรงๆ ไม่ได้ ต้องคั่นด้วย [[assoc]]</p>
+    <p>วงกลมซ้ายและขวาคือ record ของแต่ละ entity เส้นคือการจับคู่ ลองสลับแบบ แล้วกดแก้ M:N ด้วย associative entity</p>
+    <div class="fig" id="fig-rel"></div>
+    <p>ใน 1:M ตารางฝั่ง many ถือ FK ไปหาฝั่ง 1 ส่วน associative entity ถือ FK สองตัว ไปหา entity ทั้งสองฝั่ง และ PK ของมันคือ FK สองตัวนั้นรวมกัน ตั้งชื่อตามเหตุการณ์ที่จับคู่ เช่น GRADE, ORDER LINE</p>
+  </section>
+
+  <section class="idea col" id="s-crow">
+    <h2>Cardinality และสัญลักษณ์ตีนกา<span class="en">Crow's foot notation</span></h2>
+    <p class="key">[[cardinality]] บอกว่า record ของ entity หนึ่งเกี่ยวกับ record ของอีก entity ได้กี่ตัว ใช้ [[crow|crow's foot]] ที่ปลายเส้น: [[sbar|ขีด]] = หนึ่ง, [[scircle|วงกลม]] = ศูนย์, [[sfoot|ตีนกา]] = หลาย และสัญลักษณ์ที่ติดกล่องไหน บอกจำนวนของกล่องนั้น</p>
+    <p>สัญลักษณ์ที่ติดกล่อง ORDER บอกว่าลูกค้าหนึ่งคนมี ORDER ได้กี่ใบ ไม่ใช่ ORDER หนึ่งใบมีลูกค้ากี่คน แตะแต่ละปลายเส้นเพื่ออ่านทีละทิศ และปรับขั้นต่ำ ขั้นสูงเองได้</p>
+    <div class="fig" id="fig-crow"></div>
+    <div id="q-crow"></div>
+  </section>
+
+  <section class="idea col" id="s-norm">
+    <h2>ทำไมต้อง normalize<span class="en">Normalization and anomalies</span></h2>
+    <p class="key">[[norm]] คือการจัดให้ข้อมูลแต่ละเรื่องอยู่ในตารางของมันเองที่เดียว เพื่อไม่ให้เกิด [[anomaly]] ตอนเพิ่ม แก้ ลบ ข้อมูล หลักออกแบบของอาจารย์ (สไลด์ 41):</p>
+    <ol>
+      <li>เน้นลดความซ้ำซ้อนของข้อมูลเป็นหลัก</li>
+      <li>ออกแบบให้เพิ่มหรือแก้ข้อมูล (Insert, Update) ได้ง่ายและไม่ผิดพลาด</li>
+      <li>เก็บข้อมูลเป็นหลายตารางที่สัมพันธ์กัน</li>
+      <li>เก็บค่าเฉพาะเท่าที่จำเป็น</li>
+      <li>ไม่เก็บค่าที่มาจากการคำนวณ เช่น ยอดรวมต่อบรรทัด = จำนวน × ราคา ให้คำนวณตอนแสดงผล</li>
+      <li>ทุกตารางต้องมี [[pk|Primary key]]</li>
+      <li>ตารางเชื่อมกันด้วย [[fk|Foreign key]]</li>
+    </ol>
+    <p>ลองแก้ข้อมูลในตารางนัดหมายแบบตารางเดียว แล้วสลับไปดูหลังแยกตาราง</p>
+    <div class="fig" id="fig-anom"></div>
+    <p>ประโยชน์ของ normalization ที่สไลด์ 43 สรุป: ลดที่ว่างที่ใช้เก็บข้อมูล, ลดความผิดพลาดที่ข้อมูลไม่ตรงกัน, ลด anomaly ของการลบและแก้ไข, และเพิ่มความคงทนให้โครงสร้างฐานข้อมูล</p>
+  </section>
+
+  <section class="idea col" id="s-fd">
+    <h2>คำถามเดียวที่ตัดสิน 2NF และ 3NF<span class="en">Functional dependency</span></h2>
+    <p class="key">[[fd|Functional dependency]] B → A แปลว่ารู้ค่า B แล้วบอกค่า A ได้แน่นอน ตารางจะผ่าน 3NF เมื่อทุก field ขึ้นกับ key, ทั้ง key และไม่ขึ้นกับอะไรนอกจาก key: [[nf2|2NF]] ห้ามขึ้นกับ key แค่บางส่วน ([[partial]]) [[nf3|3NF]] ห้ามขึ้นกับ field ที่ไม่ใช่ key ตัวอื่น ([[transitive]])</p>
+    <p>สองตัวอย่างนี้คือตัวอย่างในสไลด์ 45 และ 46 แตะ field ที่ไม่ใช่ key ทีละตัว แล้วดูว่ามันขึ้นกับอะไร</p>
+    <div class="fig" id="fig-fd"></div>
+    <div id="q-fd"></div>
+  </section>
+
+  <section class="idea col" id="s-walk">
+    <h2>Normalize ตารางคลินิกทันตกรรมทีละขั้น<span class="en">UNF → 1NF → 2NF → 3NF</span></h2>
+    <p class="key">คลินิก "ยิ้มสดใส" เก็บการนัดหมายไว้ใน spreadsheet ตารางเดียว (แบบฝึกหัด ex-database-design) งานคือแปลงเป็น 3NF ให้ได้ 6 ตาราง และทุกขั้นระบุ PK, FK และ dependency ที่ทำให้ต้องแยก</p>
+    <p>ตารางเดิมมี 17 field จัดกลุ่มได้ตามตารางปลายทาง สีของ field ในรูปคือตารางที่มันจะไปอยู่</p>
+    <ul class="grp6">
+      <li><i class="sw oa"></i><span><b>APPOINTMENT</b> ApptNo เลขที่นัด, ApptDate วันที่นัด</span></li>
+      <li><i class="sw op"></i><span><b>PATIENT</b> PatID, PatName, PatAddr, PatPhone รหัส ชื่อ ที่อยู่ เบอร์โทรคนไข้</span></li>
+      <li><i class="sw od"></i><span><b>DENTIST</b> DenID, DenName รหัสและชื่อทันตแพทย์</span></li>
+      <li><i class="sw ot"></i><span><b>DEPARTMENT</b> DeptID, DeptName, DeptFee รหัส ชื่อ ค่าธรรมเนียมตรวจของแผนก</span></li>
+      <li><i class="sw or"></i><span><b>PROCEDURE</b> ProcID, ProcName, ProcCat, Duration, Price รหัส ชื่อ หมวด ระยะเวลามาตรฐาน ราคาต่อหน่วยของหัตถการ</span></li>
+      <li><i class="sw ou"></i><span><b>TREATMENT</b> Units จำนวนหน่วยที่รักษา (เป็นของคู่ นัด + หัตถการ)</span></li>
+    </ul>
+    <p>เขียนเป็น [[notation|standard notation]]: ApptNo เป็น key ของตาราง ส่วนหัตถการเป็น [[repgroup]] ซ้ำได้หลายชุดต่อนัด จึงใส่ในวงเล็บปีกกา และ ProcID เป็น key ของชุดนั้น</p>
+    <div class="note-code mono" id="unf-code"></div>
+
+    <h3>UNF → 1NF: แตก repeating group</h3>
+    <p>เปลี่ยนจาก [[unf]] เป็น [[nf1]] โดยแตกชุดหัตถการให้เป็นแถวละหนึ่งหัตถการ และขยาย key ให้รวม ProcID ตารางด้านล่างแสดงเฉพาะบางคอลัมน์เพื่อให้พอดีจอ field ที่เหลือ (วันที่ ที่อยู่ เบอร์โทร แผนก ชื่อและราคาหัตถการ) ตามไปอยู่ในแถวเดียวกันทั้งหมด</p>
+    <div class="fig" id="fig-1nf"></div>
+
+    <h3>1NF → 3NF: ถามว่าแต่ละ field ขึ้นกับใคร</h3>
+    <p>เลื่อนแถบทีละขั้น กรอบสีแดงคือกลุ่ม field ที่ขึ้นกับตัวกำหนดด้านบนผิดวิธี (ทำให้ไม่ผ่านรอบนั้น) กรอบสีเขียวคือขึ้นกับถูกวิธี แตะ field เพื่อดูว่ามันขึ้นกับอะไร</p>
+    <div class="fig stickfig" id="fig-nf"></div>
+  </section>
+
+  <section class="idea col" id="s-erd">
+    <h2>วาด ERD จากตาราง 3NF<span class="en">ERD with cardinality</span></h2>
+    <p class="key">ทุก FK คือหนึ่งเส้นใน [[erd]]: ตารางที่เป็นเจ้าของ PK อยู่ฝั่ง 1 ตารางที่ถือ FK อยู่ฝั่ง many ใส่คำกริยากำกับ แล้วเติม [[cardinality]] ทั้งสองปลาย</p>
+    <ol>
+      <li>เขียนกล่อง entity ตามตาราง 3NF (ชื่อเอกพจน์)</li>
+      <li>ไล่ FK ทีละตัว: ลากเส้นจากตารางที่ถือ PK ไปตารางที่ถือ FK</li>
+      <li>ปลายฝั่ง PK ใส่ขีดสองขีด (one and only one) ปลายฝั่ง FK ใส่ตีนกา แล้วเลือกวงกลมหรือขีดตามกฎของธุรกิจว่าบังคับมีอย่างน้อยหนึ่งไหม</li>
+      <li>ตั้งชื่อเส้นด้วยคำกริยาแล้วอ่านออกเสียงสองทิศ</li>
+    </ol>
+    <p>แตะเส้นหรือกล่องในผังเพื่ออ่าน</p>
+    <div class="fig" id="fig-erd"></div>
+  </section>
+
+  <section class="idea col" id="s-answer">
+    <h2>เขียนคำตอบข้อสอบ<span class="en">Written answer template</span></h2>
+    <p class="key">คะแนนแบ่งตามขั้น เขียนให้ครบ 5 ส่วน: anomaly ของตารางเดิม, 1NF, 2NF, 3NF (แต่ละขั้นมี PK, FK และ dependency) แล้วปิดด้วย ERD พร้อม cardinality บรรทัดสีจางคือสิ่งที่ต้องทำในขั้นนั้น บรรทัดสีเข้มคือสิ่งที่เขียนจริง</p>
+    <div class="fig" id="fig-answer"></div>
+  </section>
+
+  <section class="idea col" id="s-use">
+    <h2>ใช้ข้อมูลที่เก็บไว้: warehouse, mart, mining<span class="en">Data storage and access</span></h2>
+    <p class="key">[[warehouse]] รวมข้อมูลจากหลายระบบทั่วบริษัทไว้ที่เดียว [[mart]] คือคลังย่อยที่ออกแบบให้แผนกเดียวใช้ และ [[mining]] คือการหา pattern ในข้อมูลเหล่านั้น</p>
+    <div class="fig" id="fig-use"></div>
+  </section>
+
+  <section class="idea col" id="s-ctrl">
+    <h2>ปกป้องข้อมูล<span class="en">Data control</span></h2>
+    <p class="key">DBMS ที่ดีต้องมี [[control|กลไกควบคุมและรักษาความปลอดภัย]] ในตัว ได้แก่ [[access|จำกัดการเข้าถึง]], [[passw|user ID, password, permission]], [[encrypt|encryption]], [[backup]], [[recovery]] และ [[auditlog|audit log]] เลือกเหตุการณ์ แล้วดูว่ากลไกไหนรับมือ</p>
+    <div class="fig" id="fig-ctrl"></div>
+  </section>
+
+  <a class="next" href="money.html"><div class="s">บทถัดไป</div><div class="t">กลยุทธ์การพัฒนาและความคุ้มค่า <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div></a>
+</main>
+<script src="assets/core.js"></script>
+<script src="assets/data-concepts.js"></script>
+<script src="data.js"></script>
+</body>
+</html>

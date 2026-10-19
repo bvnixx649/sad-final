@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>กลยุทธ์การพัฒนาและความคุ้มค่า | Spec</title>
+<meta name="theme-color" content="#0F0F12">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="assets/core.css">
+<link rel="stylesheet" href="assets/money.css">
+</head>
+<body>
+<main>
+  <div class="col head">
+    <h1>กลยุทธ์การพัฒนาและความคุ้มค่า</h1>
+    <p class="lede">ข้อสอบบทนี้มีสองแบบ แบบแรกให้อธิบายว่าองค์กรได้ระบบมาทางไหน ([[inhouse]], [[package|ซื้อสำเร็จรูป]], [[outsource]], [[saas|SaaS]]) แบบที่สองให้คำนวณว่าโครงการคุ้มไหม ด้วย [[payback|ระยะเวลาคืนทุน]], [[dpayback|ระยะเวลาคืนทุนแบบคิดลด]] และ [[npv|NPV]] โดยเปิดตาราง [[factor|PV factor]] ช่วยได้</p>
+  </div>
+
+  <div class="fig map" id="map"></div>
+
+  <section class="idea col" id="s-web">
+    <h2>ระบบอยู่บนเครื่องเรา หรืออยู่บนอินเทอร์เน็ต<span class="en">Traditional vs Web-based, SaaS</span></h2>
+    <p class="key">แต่เดิมผู้พัฒนาขายซอฟต์แวร์ให้ลูกค้าโดยตรง ลูกค้าได้ [[license]] ไปติดตั้งและดูแลเอง [[saas|SaaS]] เปลี่ยนให้ซอฟต์แวร์เป็นบริการบนอินเทอร์เน็ต ผู้ให้บริการดูแลระบบแทน ค่าบำรุงรักษาฝั่งลูกค้าจึงลดลง</p>
+    <p>นักวิเคราะห์ระบบต้องเลือกระหว่างพัฒนา[[traditional|แบบเดิม]] (ทำให้เข้ากับฮาร์ดแวร์และระบบปฏิบัติการของลูกค้า เน้นเครือข่าย LAN, WAN) กับ[[webbased|แบบ web-based]] (มอง Web เป็นเหมือนระบบปฏิบัติการ รองรับข้อมูลและผู้ใช้ที่โตขึ้นได้ง่ายกว่า) ลองสลับดูว่าอะไรอยู่ที่ไหน</p>
+    <div class="fig in-col" id="fig-web"></div>
+    <p>องค์กรที่มีระบบเดิมอยู่แล้วเปลี่ยนทิ้งทั้งหมดไม่ได้ง่าย จึงต้องสร้าง [[middle|middle layer]] ให้ระบบ web-based คุยกับระบบเดิมได้ สองคำที่มักถูกถามคู่กันคือ [[web2|Web 2.0]] (เว็บที่ผู้ใช้แชร์และโต้ตอบกัน เช่น wiki, blog, Facebook) และ [[cloud|cloud computing]] (ผู้ใช้บอกสิ่งที่ต้องการ ระบบจัดสรรทรัพยากรให้พอดีโดยผู้ใช้ไม่ต้องรู้เบื้องหลัง)</p>
+    <div id="q-web"></div>
+  </section>
+
+  <section class="idea col" id="s-options">
+    <h2>สามทางเลือก และเหตุผลที่เลือกซื้อหรือสร้างเอง<span class="en">In-house, Off-the-shelf, Outsource</span></h2>
+    <p class="key">ระบบแบบเดิมได้มาสามทาง: [[inhouse]] ทีมของเราพัฒนาเอง, [[package]] ซื้อซอฟต์แวร์สำเร็จรูป, [[outsource]] จ้างบริษัทอื่นทำ การตัดสินใจระหว่างสร้างเองกับซื้อเรียกว่า [[buildbuy]]</p>
+    <p>เหตุผลแต่ละฝั่งในสไลด์มีฝั่งละ 4 ข้อ ลองจัดแต่ละเหตุผลลงฝั่งที่ถูก ถ้าผิดจะบอกว่าทำไม</p>
+    <div class="fig in-col" id="fig-buy"></div>
+    <p>ซอฟต์แวร์ยังแบ่งตามขอบเขตการใช้ได้อีกแบบ ตัวที่ใช้ได้กับองค์กรหลายแบบคือ [[horizontal]] (ซอฟต์แวร์บัญชี, Word) ตัวที่สร้างให้ธุรกิจเฉพาะอย่างคือ [[vertical]] (ระบบธนาคาร, ระบบโรงพยาบาล)</p>
+    <div class="fig in-col" id="fig-hv"></div>
+  </section>
+
+  <section class="idea col" id="s-out">
+    <h2>จ้างคนอื่นทำ และจ่ายกันอย่างไร<span class="en">Outsourcing, ASP, fee models, offshore</span></h2>
+    <p class="key">[[outsource]] คือจ้างบริษัทอื่นมาพัฒนาระบบ ผู้รับจ้างเรียกว่า [[provider]] ถ้าผู้รับจ้างสร้างหรือให้เช่าซอฟต์แวร์ เรียกว่า [[asp|ASP]]</p>
+    <p>ค่าบริการคิดได้สามแบบ ต่างกันที่ว่าราคาขึ้นกับอะไร ลองลากตัวเลขสองตัวด้านล่าง แล้วดูว่าแถบไหนขยับตาม</p>
+    <div class="fig in-col fees" id="fig-fees"></div>
+    <p>สไลด์สรุปว่า[[whenout|ควรจ้าง outsource ก็ต่อเมื่อ]]ประหยัดต้นทุนได้ และผู้รับจ้างเก่งจริงและน่าเชื่อถือ แล้วดูเรื่อง license, ประกัน และบริการหลังการขายด้วย ถ้าจ้างบริษัทต่างประเทศ ([[offshore]] เช่นอินเดียที่ค่าแรงถูก) ต้องพิจารณาเพิ่มอีกสี่เรื่อง คือ การควบคุมดูแล วัฒนธรรมที่ต่างกัน การสื่อสาร และความปลอดภัยของข้อมูล</p>
+    <div id="q-out"></div>
+  </section>
+
+  <section class="idea col" id="s-ben">
+    <h2>ผลตอบแทนที่วัดเป็นเงินได้ กับที่วัดไม่ได้<span class="en">Tangible vs Intangible benefit</span></h2>
+    <p class="key">ท้ายขั้นออกแบบ นักวิเคราะห์ต้องทำ [[costbenefit]] ว่าคุ้มไหม ผลตอบแทนมีสองชนิด: [[tangible]] แสดงเป็นตัวเลขได้ชัดเจน และ [[intangible]] แสดงให้เห็นชัดไม่ได้</p>
+    <p>เฉพาะ tangible เท่านั้นที่เอาไปเป็นเงินรับในการคำนวณถัดไป ลองจัดแต่ละข้อลงฝั่งที่ถูก</p>
+    <div class="fig in-col" id="fig-ti"></div>
+  </section>
+
+  <section class="idea col" id="s-pb">
+    <h2>กี่ปีถึงจะได้ทุนคืน<span class="en">Payback period</span></h2>
+    <p class="key">[[payback|ระยะเวลาคืนทุน]] คือเวลาที่เงินรับสะสมไล่ทัน[[invest|เงินลงทุน]] ข้อสอบให้เงินลงทุนกับเงินรับรายปี แล้วถามว่าคืนทุนภายในกี่ปี</p>
+    <p>ไล่บวกเงินรับทีละปีเข้ากับเงินลงทุน จะได้ [[cumulative|เงินคงเหลือ]] ที่เริ่มติดลบแล้วค่อยๆ ขึ้น ปีที่ยอดข้ามศูนย์คือปีที่คืนทุน เศษของปีหาโดยสมมติว่าเงินเข้าสม่ำเสมอตลอดปี ตัวอย่างจากสไลด์ (Ex1): ลงทุน 105,000 เงินรับปีที่ 1 ถึง 6 คือ 35,000, 45,000, 50,000, 50,000, 45,000, 35,000 ลากแถบไปทีละปี</p>
+    <div class="fig cash" id="fig-pb"></div>
+    <div id="eq-pb"></div>
+    <p>ตารางด้านล่างคือรูปแบบที่อาจารย์ใช้ในไฟล์ตัวอย่างและควรเขียนในกระดาษคำตอบ แตะช่องไหนก็ได้เพื่อดูว่าตัวเลขนั้นมาจากไหน</p>
+    <div class="fig" id="fig-pb-tab"></div>
+    <p>ข้อดีของ [[payback]] คือบอก[[pbpros|ความเสี่ยงและสภาพคล่อง]]ได้ และคำนวณง่าย ข้อเสียคือ[[pbcons|ไม่นับมูลค่าของเงินตามเวลา และไม่ดูเงินหลังคืนทุน]]</p>
+    <div id="q-pb"></div>
+  </section>
+
+  <section class="idea col" id="s-pv">
+    <h2>เงินวันหน้าต้องลดค่าก่อนเอามาเทียบ<span class="en">Present value</span></h2>
+    <p class="key">[[tvm|เงินวันนี้มีค่ากว่าเงินวันหน้า]] จึงต้องแปลงเงินอนาคตเป็น[[pv|มูลค่าปัจจุบัน]]ก่อนเทียบ ยิ่ง[[r|อัตราคิดลด]]สูงและยิ่งไกลหลายปี ยิ่งเหลือน้อย</p>
+    <p>ลองสมมติว่าจะได้เงิน 100,000 บาทในปีที่ t แท่งแต่ละแท่งคือค่าของเงินก้อนนั้นถ้านับเป็นเงินวันนี้ ตารางด้านล่างคือตารางเดียวกับที่ข้อสอบให้มา (แถว = ปี, คอลัมน์ = r) ช่องที่ตัดกันคือ factor</p>
+    <div class="fig pvf" id="fig-pv"></div>
+    <div id="eq-pv"></div>
+    <p>ปีที่ 0 คือวันนี้ factor เป็น 1 พอดี เงินลงทุนที่จ่ายวันนี้จึงไม่ถูกลดค่า ข้อสอบจะให้ตาราง factor มา ใช้ค่าในตารางตามที่อาจารย์ทำ ไม่ต้องกดสูตร (ตารางปัดเป็นทศนิยม 4 ตำแหน่ง ผลจึงต่างจากการคำนวณเต็มเล็กน้อย)</p>
+    <div id="q-pv"></div>
+  </section>
+
+  <section class="idea col" id="s-dpb">
+    <h2>คืนทุนแบบนับค่าของเงิน<span class="en">Discounted payback period</span></h2>
+    <p class="key">[[dpayback]] ทำเหมือน payback ธรรมดาทุกอย่าง ต่างกันตรงที่ต้องคูณเงินรับแต่ละปีด้วย PV factor ก่อน แล้วค่อยสะสม เศษของปีก็หารด้วยค่าปัจจุบันของปีนั้น</p>
+    <p>ข้อมูลชุดเดียวกับ Ex1 (Ex2 ในสไลด์ ใช้ r = 12%) กดสลับระหว่างสองแบบ เส้นจางคือแบบที่ไม่ได้เลือก จะเห็นว่าแบบคิดลดข้ามศูนย์ช้ากว่า เพราะเงินทุกปีเหลือน้อยลง</p>
+    <div class="fig cash" id="fig-dpb"></div>
+    <p>ตารางที่อาจารย์ใช้ (sheet 1) แตะแต่ละช่องดูที่มา คอลัมน์ PV factor อ่านจากตารางที่ r = 12% ตามปีของแถวนั้น</p>
+    <div class="fig" id="fig-dpb-tab"></div>
+    <div id="q-dpb"></div>
+  </section>
+
+  <section class="idea col" id="s-npv">
+    <h2>รวมทั้งโครงการเป็นตัวเลขเดียว<span class="en">Net Present Value</span></h2>
+    <p class="key">[[npv|NPV]] เอามูลค่าปัจจุบันของเงินรับทั้งหมดลบมูลค่าปัจจุบันของเงินจ่ายทั้งหมด ได้บวกแปลว่าคุ้ม ได้ลบแปลว่าไม่คุ้ม</p>
+    <p>สองตัวอย่างจากไฟล์ของอาจารย์: A ลงทุน 1,000,000 ได้ 300,000 ต่อปี 5 ปี (นับปีปัจจุบันด้วย, r = 10%) และ B ลงทุน 12,900 ได้ 3,000 ต่อปี 5 ปี (r = 12%) เปลี่ยนโครงการ แล้วลากอัตราคิดลดดูว่าผลกลับด้านตรงไหน</p>
+    <div class="fig npvf" id="fig-npv"></div>
+    <div id="eq-npv"></div>
+    <p>ตัวเลขของ A ที่ได้จากตารางคือ 1,250,940 ส่วนสไลด์คำนวณเต็มได้ 1,250,959.63 ต่างกันเพราะตารางปัดทศนิยม ทั้งสองให้ข้อสรุปเดียวกัน ถ้าข้อสอบให้ตารางมา ให้ใช้ตาราง</p>
+    <p>เมื่อมีหลายโครงการ ให้ดูว่า[[exclusive|ทดแทนกัน]] (เลือกได้อย่างเดียว) หรือ[[independent|อิสระต่อกัน]] (ทำได้หมด) สลับสองแบบ แล้วลากค่า NPV ของโครงการ M ดูว่าผู้ถูกเลือกเปลี่ยนอย่างไร</p>
+    <div class="fig in-col choose" id="fig-choose"></div>
+    <div id="q-npv"></div>
+  </section>
+
+  <a class="next" href="io.html"><div class="s">บทถัดไป</div><div class="t">Output, UI และ Input <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div></a>
+</main>
+<script src="assets/core.js"></script>
+<script src="assets/money-concepts.js"></script>
+<script src="money.js"></script>
+</body>
+</html>

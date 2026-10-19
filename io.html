@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Output, UI และ Input | Spec</title>
+<meta name="theme-color" content="#0F0F12">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="assets/core.css">
+<link rel="stylesheet" href="assets/io.css">
+</head>
+<body>
+<main>
+  <div class="col head">
+    <h1>Output, UI และ Input</h1>
+    <p class="lede">ข้อสอบบทนี้ถามสองแบบ แบบแรกให้จำแนก: รายงานนี้เป็นชนิดไหน, validation check ข้อไหนจับค่าผิดนี้ได้, ควรใช้ UI control ตัวไหน, ข้อมูลเข้าแบบ batch หรือ online แบบที่สองให้คำนวณ: รายงานยาวกี่บรรทัด ใช้กระดาษกี่แผ่น พิมพ์กี่นาทีกี่วินาที ทั้งหมดอยู่ในระบบสามส่วน คือ [[input]] ข้อมูลที่เข้า, [[output]] ข้อมูลที่ออก และ [[uidesign|User Interface]] หน้าจอตรงกลางที่คนใช้</p>
+  </div>
+
+  <div class="fig map" id="map"></div>
+
+  <section class="idea col" id="s-out">
+    <h2>Output: ถามก่อน แล้วค่อยออกแบบ<span class="en">Output design</span></h2>
+    <p class="key">[[output]] คือข้อมูลที่ระบบส่งออกให้คนหรือระบบอื่นใช้ ก่อนออกแบบต้องตอบ [[outq|คำถามห้าข้อ]] ให้ครบ เพราะคำตอบกำหนดทั้งรูปแบบและช่องทาง</p>
+    <p>ห้าข้อคือ: จุดประสงค์ของ output, ใครใช้และสำคัญอย่างไร, มีข้อมูลอะไรบ้าง, แสดงทางช่องทางไหน (จอหรือเครื่องพิมพ์ ฯลฯ), เป็นความลับหรือไม่ ลองสลับ output สามอย่างด้านล่างดูว่าคำตอบเปลี่ยนไปอย่างไร</p>
+    <div class="fig in-col" id="fig-ask"></div>
+    <p>ช่องทางที่สไลด์แบ่งไว้มีสามกลุ่ม แตะแต่ละชนิดเพื่อดูความหมาย output ของระบบหนึ่งเป็น input ของอีกระบบหนึ่งได้ และ output พื้นฐานที่สุดคือจอภาพกับเครื่องพิมพ์</p>
+    <div class="fig in-col" id="fig-types"></div>
+    <div id="q-out"></div>
+  </section>
+
+  <section class="idea col" id="s-rtype">
+    <h2>รายงานสามแบบ: ข้อมูลเดียวกัน คนอ่านต่างกัน<span class="en">Detail / Exception / Summary report</span></h2>
+    <p class="key">แบ่งรายงานตามคนอ่านและเจตนา: [[rdetail]] แสดงทุกรายการทีละบรรทัด, [[rexcept]] แสดงเฉพาะรายการที่ผิดปกติหรือตรงเงื่อนไข, [[rsummary]] รวมเป็นตัวเลขสรุป เหมาะกับผู้บริหารระดับสูง</p>
+    <p>ภาพด้านล่างเป็นข้อมูลสต๊อกชุดเดียว สลับดูทีละแบบ และลองกด − + เพื่อเปลี่ยนจำนวนในสต๊อก รายงานแบบ exception กับ summary จะเปลี่ยนตามทันที</p>
+    <div class="fig" id="fig-rtype"></div>
+    <div id="q-rtype"></div>
+  </section>
+
+  <section class="idea col" id="s-rdesign">
+    <h2>ให้ผู้ใช้เห็นรายงานก่อนสร้างจริง<span class="en">Mock-up, report analysis form, output control</span></h2>
+    <p class="key">ผู้ใช้ควรให้คำแนะนำก่อนระบบใช้จริง จึงส่งให้ดูสองอย่าง: [[mockup]] คือตัวอย่างหน้าตารายงานที่เหมือนของจริง และ [[raf]] คือตัวอย่างเดียวกันที่ติดป้ายบอกรายละเอียดของทุกส่วน</p>
+    <div class="fig in-col" id="fig-mock"></div>
+    <p>หลักออกแบบรายงานในสไลด์มีสองข้อ: [[rfield]] ข้อมูลในฟิลด์ต้องเรียงลำดับ (เช่น เรียงตามรหัสหรือชื่อ) และ [[rconsist]] ทุกรายงานในระบบใช้หน้าตาแบบเดียวกัน ส่วนรายงานที่ออกไปแล้วต้องผ่าน [[ocontrol]]: ถูกต้อง สมบูรณ์ เป็นปัจจุบัน และเป็นความลับ</p>
+    <div id="q-rdesign"></div>
+  </section>
+
+  <section class="idea col" id="s-hci">
+    <h2>หน้าจอที่ดีออกแบบจากมุมผู้ใช้<span class="en">HCI, user rights, user-centered design</span></h2>
+    <p class="key">[[hci]] ศึกษาความสัมพันธ์ระหว่างคอมพิวเตอร์กับผู้ใช้ หน้าจอแบบภาพที่คลิกหรือแตะได้คือ [[gui]] เป้าหมายคือใช้ง่ายและเรียนรู้ได้เร็ว วิธีออกแบบที่สไลด์ใช้คือ [[ucd|user-centered design]] มองจากผู้ใช้เป็นหลัก ถ้าผู้ใช้ใช้ไม่ได้ ปัญหาอยู่ที่ระบบ</p>
+    <p>แนวคิดนี้แตกเป็น [[urights|สิทธิ 10 ข้อของผู้ใช้]] จาก IBM แตะแต่ละข้อดูว่าถ้าระบบละเมิดจะเป็นอย่างไร</p>
+    <div class="fig" id="fig-rights"></div>
+    <p>ส่วนวิธีลงมือทำ user-centered design มีสามข้อ: ใช้ [[uig|หลักออกแบบหน้าจอ 8 ข้อ]], ต้องเข้าใจหน้าที่การทำงานขององค์กร, และคิดว่าตัวเองเป็นผู้ใช้ หน้าจอด้านล่างมีครบทั้ง 8 ข้อ สลับระหว่างฉบับแย่กับฉบับดี แล้วแตะแต่ละแถวดูว่าข้อไหน</p>
+    <div class="fig in-col" id="fig-uig"></div>
+    <div id="q-hci"></div>
+  </section>
+
+  <section class="idea col" id="s-ctl">
+    <h2>UI control: เลือกตัวควบคุมให้ตรงงาน<span class="en">User interface controls</span></h2>
+    <p class="key">[[controls|UI control]] คือชิ้นส่วนบนหน้าจอที่ผู้ใช้แตะหรือพิมพ์เพื่อสั่งงานและใส่ข้อมูล สไลด์ให้จำ 12 ชนิด ข้อสอบมักถามว่างานแบบนี้ควรใช้ตัวไหน</p>
+    <p>ด้านล่างคือหน้าจอตัวอย่างที่มีครบทั้ง 12 ชนิด โหมด <b>สำรวจ</b> แตะแต่ละชิ้นเพื่อดูชื่อกับเวลาที่ควรใช้ โหมด <b>ทดสอบ</b> จะให้โจทย์สถานการณ์ แล้วให้แตะตัวควบคุมที่เหมาะ</p>
+    <div class="fig" id="fig-ctl"></div>
+    <div id="q-ctl"></div>
+  </section>
+
+  <section class="idea col" id="s-input">
+    <h2>Input: ข้อมูลเข้าผิด ผลลัพธ์ผิดทั้งหมด<span class="en">Input design</span></h2>
+    <p class="key">คุณภาพของ output ขึ้นกับ input ตรงๆ จึงมีหลัก [[gigo]]: ข้อมูลเข้าเป็นขยะ ผลลัพธ์ก็เป็นขยะ การรับข้อมูลมีสองขั้น คือ [[capture]] เก็บข้อมูลจากต้นทาง แล้ว [[entry]] ป้อนเข้าระบบ</p>
+    <p>วิธีป้อนเข้าระบบมีสองแบบ: [[batch]] สะสมไว้แล้วป้อนตามเวลาที่กำหนด และ [[online]] ป้อนทันทีที่เกิดรายการ ลากแถบเวลาดูว่าทั้งสองแบบต่างกันตรงไหน</p>
+    <div class="fig in-col" id="fig-bo"></div>
+    <p>เป้าหมายต่อไปคือให้ผู้ใช้พิมพ์น้อยที่สุด เพราะทุกตัวอักษรที่พิมพ์คือโอกาสผิด สไลด์มี [[vol|กฎลดปริมาณ input]] สี่ข้อ และ [[dataentry|แนวทางออกแบบหน้าจอรับข้อมูล]] อีกหลายข้อ ฟอร์มด้านล่างมี 10 จุดที่ออกแบบไม่ดี แตะจุดที่เป็นสีแดงเพื่อแก้ แล้วดูว่าแก้ตามกฎข้อไหน</p>
+    <div class="fig in-col" id="fig-form"></div>
+    <p>หน้าจอรับข้อมูลควรมี layout ตาม [[srcdoc]] ต้นฉบับ และกรอกจากซ้ายไปขวา บนลงล่างตามทิศทางการอ่าน เพราะผู้คีย์ข้อมูลมองเอกสารจริงไปพร้อมกัน</p>
+    <div id="q-input"></div>
+  </section>
+
+  <section class="idea col" id="s-val">
+    <h2>ตรวจข้อมูลก่อนเข้า: validation 8 แบบ<span class="en">Data validation checks</span></h2>
+    <p class="key">[[validation]] คือด่านที่ตรวจค่าที่ผู้ใช้ป้อนก่อนรับเข้าระบบ สไลด์มีอย่างน้อย 8 แบบ แต่ละแบบจับความผิดคนละชนิด ถ้าแยกไม่ออกให้ถามตัวเองว่า &ldquo;ค่านี้ผิดเพราะอะไร&rdquo;</p>
+    <p>ฟอร์มด้านล่างคือใบสั่งซื้อ กดตัวอย่างค่าที่ผิด หรือพิมพ์เองลงในช่อง แถบ 8 ช่องใต้ปุ่มตัวอย่างจะสว่างตรงด่านที่จับได้ ด่านแบบ [[v_batch]] ตรวจทั้งชุด ลองลบหรือแก้แถวในตารางล่างสุด</p>
+    <div class="fig" id="fig-val"></div>
+    <div id="q-val"></div>
+  </section>
+
+  <section class="idea col" id="s-icontrol">
+    <h2>ตรวจย้อนได้และปกป้องข้อมูล<span class="en">Input control</span></h2>
+    <p class="key">ข้อมูลทุกฟิลด์ต้องตรวจสอบได้ เครื่องมือมีสามอย่าง: [[audit]] บอกที่มาของข้อมูลว่าใครคีย์ เมื่อไร จากกระบวนการไหน, [[datasec]] ป้องกันความเสียหายต่อข้อมูล และ [[encrypt]] เข้ารหัสข้อมูลที่ไม่ควรให้ใครอ่านตรงๆ</p>
+    <p>ลองแก้เงินเดือนในช่องด้านล่างโดยสลับผู้ใช้ แล้วดูว่าบันทึกตรวจย้อนมีอะไรเพิ่มขึ้น จากนั้นเปิดดูข้อมูลแบบที่เก็บจริงในฐานข้อมูล</p>
+    <div class="fig in-col" id="fig-audit"></div>
+    <div id="q-icontrol"></div>
+  </section>
+
+  <section class="idea col" id="s-calc">
+    <h2>คำนวณกระดาษและเวลาพิมพ์รายงาน<span class="en">Report printing calculation</span></h2>
+    <p class="key">โจทย์ให้จำนวนรายการ ขนาดหน้ากระดาษ และความเร็วเครื่องพิมพ์ ให้หาจำนวนแผ่นกับเวลา ทำสามขั้น: นับ<b>บรรทัดทั้งหมด</b>, หาจำนวน<b>หน้า</b> (หารแล้วปัดเศษขึ้นเสมอ), แล้วหา<b>เวลา</b> = หน้า ÷ ความเร็ว</p>
+    <p>โจทย์ในชีท: ยอดขายเดือนกันยายน 1,880 รายการ รายการละ 1 บรรทัด พิมพ์ลงกระดาษที่หน้าหนึ่งมี 80 บรรทัด ใช้เป็นหัวกระดาษ 2 และท้ายกระดาษ 2 บรรทัด มีผลรวมของแต่ละหมวด 5 หมวด หมวดละ 3 บรรทัด และผลรวมทั้งหมดอีก 3 บรรทัด เครื่องเลเซอร์ 16 หน้าต่อนาที (PPM) ลากแถบเพื่อดูทีละขั้น</p>
+    <div class="fig" id="fig-calc"></div>
+    <p>เศษของหน้าต้องปัดขึ้นเสมอ เลื่อนจำนวนรายการเพื่อดูว่าหน้าที่ 26 โผล่ขึ้นมาตั้งแต่เกินไปเพียง 1 บรรทัด</p>
+    <div class="fig in-col" id="fig-ceil"></div>
+    <p>สรุปเป็นสูตรสี่ตัว แตะแต่ละตัวอักษรเพื่อดูความหมาย</p>
+    <div id="eq-calc"></div>
+    <p>ทุกตัวเลขในคำตอบต้องบอกว่ามาจากไหน เขียนในกระดาษตามรูปแบบนี้ ชื่อ = สูตร = ตัวเลข = ผลลัพธ์</p>
+    <div id="work-calc"></div>
+    <div id="q-calc"></div>
+  </section>
+
+  <a class="next" href="deliver.html"><div class="s">บทถัดไป</div><div class="t">ส่งมอบระบบ <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div></a>
+</main>
+<script src="assets/core.js"></script>
+<script src="assets/io-concepts.js"></script>
+<script src="io.js"></script>
+</body>
+</html>

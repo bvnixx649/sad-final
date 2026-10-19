@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="th" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Spec | SA&amp;D Final</title>
+<meta name="description" content="ติว final วิชา 254374 System Analysis and Design แบบ interactive: PERT/CPM, Crash, Normalization, ERD, Payback, NPV, Output/Input design, Changeover">
+<meta name="theme-color" content="#0F0F12">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="assets/core.css">
+<style>
+  .home-head { padding: 44px 0 6px; }
+  .home-head h1 { font-size: clamp(42px, 8vw, 74px); line-height: 1.02; letter-spacing: -.04em; margin: 0 0 16px; font-weight: 700; text-wrap: balance; }
+  .home-head p { font-size: clamp(18px, 2.4vw, 21px); line-height: 1.6; color: var(--ink-2); margin: 0; max-width: 34em; text-wrap: pretty; }
+  .facts { display: flex; flex-wrap: wrap; gap: 10px 26px; margin-top: 22px; }
+  .facts div { font-size: 14px; color: var(--muted); }
+  .facts b { display: block; font: 700 24px var(--mono); color: var(--ink); letter-spacing: -.02em; }
+  .life { margin: 34px auto 0; max-width: var(--wide); background: var(--band); border-radius: 32px; padding: 22px; }
+  .life .lane { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .life .ph { border-radius: 22px; padding: 14px; background: var(--surface); display: flex; flex-direction: column; gap: 8px; opacity: 0; transform: translateY(12px); transition: opacity 420ms ease, transform 520ms var(--ease); }
+  .life.on .ph { opacity: 1; transform: none; }
+  .life.on .ph:nth-child(2) { transition-delay: 120ms; } .life.on .ph:nth-child(3) { transition-delay: 240ms; } .life.on .ph:nth-child(4) { transition-delay: 360ms; }
+  .life .ph h3 { margin: 0; font-size: 15px; color: var(--muted); font-weight: 600; }
+  .life .ch-b { display: grid; grid-template-columns: 30px 1fr; gap: 10px; align-items: center; padding: 10px; border-radius: 14px; background: var(--bg); color: var(--ink); font-weight: 600; font-size: 15px; line-height: 1.35; transition: transform 140ms var(--ease); }
+  .life .ch-b:active { transform: scale(.98); }
+  .life .ch-b .n { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; font: 700 14px var(--mono); background: var(--zc-s); color: var(--zc); }
+  .life .track { height: 4px; border-radius: 2px; background: var(--surface-2); margin: 16px 6px 0; position: relative; overflow: hidden; }
+  .life .track i { position: absolute; inset: 0; background: linear-gradient(90deg, var(--c-teal), var(--c-violet), var(--c-amber), var(--c-green)); transform-origin: left; transform: scaleX(0); transition: transform 1400ms var(--ease) 300ms; }
+  .life.on .track i { transform: scaleX(1); }
+  .z1 { --zc: var(--c-teal); --zc-s: var(--c-teal-s); } .z2 { --zc: var(--c-violet); --zc-s: var(--c-violet-s); } .z3 { --zc: var(--c-amber); --zc-s: var(--c-amber-s); } .z4 { --zc: var(--c-blue); --zc-s: var(--c-blue-s); } .z5 { --zc: var(--c-green); --zc-s: var(--c-green-s); }
+  @media (max-width: 760px) { .life .lane { grid-template-columns: 1fr 1fr; } }
+  .chaps { max-width: var(--col); margin: 40px auto 0; display: grid; gap: 4px; }
+  .ch { display: grid; grid-template-columns: 48px 1fr auto; gap: 14px; align-items: center; padding: 14px 10px 14px 12px; border-radius: 20px; }
+  .ch .n { width: 48px; height: 48px; border-radius: 15px; display: grid; place-items: center; font: 600 17px var(--mono); background: var(--zc-s); color: var(--zc); }
+  .ch .t { font-size: 19px; font-weight: 700; letter-spacing: -.02em; line-height: 1.3; color: var(--ink); }
+  .ch .s { font-size: 14px; color: var(--muted); line-height: 1.5; margin-top: 2px; }
+  .ch .go { display: flex; gap: 6px; }
+  .ch .go a { height: 40px; padding: 0 14px; border-radius: 12px; background: var(--surface); color: var(--ink); font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; }
+  .ch .go a.p { background: var(--surface-2); color: var(--ink-2); }
+  @media (max-width: 520px) { .ch { grid-template-columns: 40px 1fr; } .ch .n { width: 40px; height: 40px; } .ch .go { grid-column: 2; } }
+  .big2 { max-width: var(--col); margin: 22px auto 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .big2 a { border-radius: 24px; padding: 22px; color: var(--ink); display: block; transition: transform 140ms var(--ease); }
+  .big2 a:active { transform: scale(.98); }
+  .big2 a.ex { background: var(--accent); color: var(--on-accent); }
+  .big2 a.sh { background: var(--surface); }
+  .big2 .t { font-size: 21px; font-weight: 700; letter-spacing: -.02em; }
+  .big2 .s { font-size: 14px; opacity: .8; margin-top: 4px; line-height: 1.5; }
+  @media (max-width: 520px) { .big2 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <div class="col home-head">
+    <h1>System Analysis and Design Final</h1>
+    <p>254374 ปลายภาค เนื้อหาหลังกลางภาค 5 เรื่อง แต่ละเรื่องมีบทเรียนกับแบบฝึกแยกกัน และมีโจทย์เขียนตอบแบบข้อสอบจริงพร้อมวิธีทำ</p>
+    <div class="facts"><div><b>5 ข้อ</b>บรรยาย + คำนวณ</div><div><b>3 ชม.</b>เวลาทำ</div><div><b>Open</b>เอกสาร + เครื่องคิดเลข</div></div>
+  </div>
+
+  <div class="life" id="life">
+    <div class="lane">
+      <div class="ph z1"><h3>วางแผน</h3><a class="ch-b z1" href="plan.html"><span class="n">1</span>วางแผนโครงการ</a></div>
+      <div class="ph"><h3>ออกแบบ</h3><a class="ch-b z2" href="data.html"><span class="n">2</span>ฐานข้อมูล</a><a class="ch-b z4" href="io.html"><span class="n">4</span>Output, UI, Input</a></div>
+      <div class="ph"><h3>ตัดสินใจ</h3><a class="ch-b z3" href="money.html"><span class="n">3</span>Build or Buy, ความคุ้มค่า</a></div>
+      <div class="ph"><h3>ส่งมอบ</h3><a class="ch-b z5" href="deliver.html"><span class="n">5</span>ทดสอบ ติดตั้ง ดูแล</a></div>
+    </div>
+    <div class="track"><i></i></div>
+  </div>
+
+  <div class="big2">
+    <a class="ex" href="exam.html"><div class="t">ข้อสอบจำลอง</div><div class="s">5 ข้อแบบปลายภาค สุ่มตัวเลขใหม่ได้ เขียนเองก่อนแล้วเปิดดูวิธีทำ</div></a>
+    <a class="sh" href="sheet.html"><div class="t">ชีทสรุป PDF</div><div class="s">ทุกบท นิยาม สูตร แม่แบบวิธีทำ เกร็งข้อสอบ สำหรับพกเข้าห้องสอบ</div></a>
+  </div>
+
+  <div class="chaps" id="chaps"></div>
+</main>
+<script src="assets/core.js"></script>
+<script>
+  Hop.page(0);
+  const Z = ['', 'z1', 'z2', 'z3', 'z4', 'z5'];
+  Hop.$('#chaps').append(...Hop.CHAPTERS.filter(c => c.id !== 'exam').map(c => Hop.el('div', { class: 'ch ' + Z[c.n] },
+    Hop.el('a', { class: 'n', href: c.href, text: c.n }),
+    Hop.el('a', { href: c.href }, Hop.el('div', { class: 't', text: c.t }), Hop.el('div', { class: 's', text: c.s })),
+    Hop.el('div', { class: 'go' }, Hop.el('a', { href: c.href, text: 'เรียน' }), Hop.el('a', { class: 'p', href: 'practice.html?c=' + c.id, text: 'ฝึก' })))));
+  Hop.onView(Hop.$('#life'), () => Hop.$('#life').classList.add('on'), .3);
+</script>
+</body>
+</html>

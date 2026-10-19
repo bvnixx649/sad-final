@@ -1,0 +1,281 @@
+// Chapter 2 (data design) concepts: every term in the text, figures and formulas opens one of these.
+// Colour = meaning: blue data structure, amber keys, violet ERD/relationships, rose problems, green normalization, teal DBMS/storage/control.
+(() => {
+  const DV = window.DataViz = {};
+
+  /* ---------- shared drawing helpers (also used by data.js) ---------- */
+  // crow's foot end. Local origin = entity edge, the line runs toward +x. min 0|1, max 1|'M'
+  DV.glyph = (min, max, x, y, deg = 0, cls = '') => {
+    let p = '', c = '';
+    if (max === 'M') {
+      p = 'M0 -9L14 0M0 9L14 0M0 0H14';
+      if (min === 1) p += 'M21 -8V8';
+      else c = '<circle cx="23" cy="0" r="5.5" fill="var(--band)"/>';
+    } else {
+      p = 'M8 -8V8';
+      if (min === 1) p += 'M15 -8V8';
+      else c = '<circle cx="21" cy="0" r="5.5" fill="var(--band)"/>';
+    }
+    return `<g class="gl ${cls}" transform="translate(${x} ${y}) rotate(${deg})" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${p}"/>${c}</g>`;
+  };
+  // schema in the course's standard notation. fields: 'name' | '*name' (PK) | 'name^' (FK) | '*name^' (PK + FK)
+  DV.schema = (name, fields) => `<span class="sch"><b>${name}</b> ( ${fields.map(f => {
+    const pk = f[0] === '*', fk = f.endsWith('^'), n = f.replace(/^\*/, '').replace(/\^$/, '');
+    return `<span class="f${pk ? ' pk' : ''}${fk ? ' fk' : ''}">${n}</span>`;
+  }).join(', ')} )</span>`;
+  // small data table for sheet visuals. pk / fk = column indexes
+  DV.mt = (cols, rows, o = {}) => {
+    const pk = o.pk || [], fk = o.fk || [], hl = o.hl || [];
+    return `<div class="tw"><table class="dt mini">${o.cap ? `<caption>${o.cap}</caption>` : ''}<thead><tr>${cols.map((c, i) => `<th class="${pk.includes(i) ? 'pk' : ''} ${fk.includes(i) ? 'fk' : ''}"><span>${c}</span></th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr>${r.map((v, i) => `<td class="${hl.includes(i) ? 'hl' : ''}">${v}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  };
+
+  const glyphRow = (min, max, label, y) => `<line x1="14" y1="${y}" x2="150" y2="${y}" stroke="currentColor" stroke-width="2"/>${DV.glyph(min, max, 150, y, 180)}<rect x="150" y="${y - 13}" width="30" height="26" rx="6" fill="var(--surface-2)"/><text x="196" y="${y + 5}" font-size="14" fill="currentColor">${label}</text>`;
+  const oneGlyph = (min, max) => `<svg viewBox="0 0 200 50" style="max-width:260px;margin:auto;color:var(--c-violet)"><line x1="10" y1="25" x2="120" y2="25" stroke="currentColor" stroke-width="2"/>${DV.glyph(min, max, 120, 25, 180)}<rect x="120" y="11" width="30" height="28" rx="6" fill="var(--surface-2)"/></svg>`;
+
+  const D = {
+    /* ===== blue: data structure ===== */
+    database: { t: 'ฐานข้อมูล', en: 'database', c: 'blue', hint: 'ตารางที่สัมพันธ์กัน เก็บข้อมูลที่เดียว',
+      short: 'กลุ่มของตารางที่สัมพันธ์กัน เก็บข้อมูลของทั้งองค์กรไว้ที่เดียว แล้วให้ทุกระบบงานดึงไปใช้ร่วมกัน ไม่ต้องเก็บซ้ำ',
+      more: '<p>เมื่อมองผ่าน {{dbms}} จะเห็นเหมือนเป็นตารางใหญ่ตารางเดียว ทั้งที่จริงข้อมูลแยกเก็บเป็นหลายตาราง แล้วเชื่อมกันด้วย {{commonfield|common field}}</p>',
+      parts: ['table', 'dbms', 'redundancy'] },
+    filesys: { t: 'File processing', en: 'file processing system', c: 'blue', hint: 'แต่ละระบบมีไฟล์ของตัวเอง',
+      short: 'วิธีเก็บข้อมูลที่แต่ละระบบงานมีไฟล์ของตัวเอง ข้อมูลที่หลายระบบต้องใช้ (เช่น ชื่อและเบอร์โทรลูกค้า) จึงถูกกรอกและเก็บซ้ำในหลายไฟล์',
+      more: '<p>ผลคือเกิด {{redundancy}} และข้อมูลที่ไม่ตรงกันระหว่างไฟล์ ตัวอย่างในสไลด์: ร้านของ Mario ใช้สองระบบแยกกัน ต้องกรอกข้อมูลลูกค้าสองรอบ</p><p>แต่ file processing ยังไม่ตาย บริษัทที่ต้องประมวลผลข้อมูลโครงสร้างตายตัวปริมาณมากเป็นประจำ เช่น บริษัทบัตรเครดิตที่ลงรายการวันละหลายพันรายการ ใช้วิธีนี้แล้วคุ้มค่าในบางสถานการณ์</p>',
+      parts: ['redundancy', 'database'] },
+    entity: { t: 'Entity', en: 'entity (สิ่งที่เก็บข้อมูล)', c: 'blue', hint: 'คน สถานที่ สิ่งของ หรือเหตุการณ์',
+      short: 'คน สถานที่ สิ่งของ หรือเหตุการณ์ ที่เราต้องเก็บข้อมูล เช่น CUSTOMER, ORDER, PRODUCT',
+      more: '<p>แต่ละ entity กลายเป็นหนึ่ง {{table}} ใน ERD ตั้งชื่อ entity เป็น <b>คำนามเอกพจน์</b> (CUSTOMER ไม่ใช่ CUSTOMERS) เพราะ entity หมายถึงสิ่งหนึ่งอย่าง ส่วนแถวหลายแถวในตารางคือหลาย {{record|record}} ของ entity นั้น</p><p>วิธีหา entity จากโจทย์: ดูคำนามในโจทย์ (สไลด์ 50)</p>',
+      parts: ['table', 'field', 'record'] },
+    table: { t: 'Table / File', en: 'table (file)', c: 'blue', hint: 'ชุด record ของ entity หนึ่งชนิด',
+      short: 'ที่เก็บชุด record ที่เกี่ยวกับ entity หนึ่งชนิด หนึ่งตารางต่อหนึ่ง entity',
+      more: '<p>ตารางประกอบด้วย {{field|คอลัมน์ (field)}} และ {{record|แถว (record)}} ชื่อตารางกับชื่อ entity ใช้ชื่อเดียวกัน</p>',
+      viz: v => { v.innerHTML = DV.mt(['CustID', 'Name', 'Phone'], [['C1', 'สมชาย', '081-111'], ['C2', 'มานี', '082-222']], { pk: [0], cap: 'CUSTOMER' }); },
+      parts: ['entity', 'field', 'record'] },
+    field: { t: 'Field / Attribute', en: 'field = attribute (คอลัมน์)', c: 'blue', hint: 'ข้อเท็จจริงหนึ่งอย่างของ entity',
+      short: 'ลักษณะหรือข้อเท็จจริงหนึ่งอย่างเกี่ยวกับ entity คือหนึ่งคอลัมน์ของตาราง เช่น Name, Phone',
+      more: '<p>field กับ attribute คือสิ่งเดียวกัน (เรียกอีกอย่างว่าคอลัมน์) field แต่ละตัวเก็บค่าชนิดเดียว เช่น ตัวเลข ข้อความ วันที่</p>',
+      viz: v => { v.innerHTML = DV.mt(['CustID', 'Name', 'Phone'], [['C1', 'สมชาย', '081-111'], ['C2', 'มานี', '082-222']], { hl: [1] }); } },
+    record: { t: 'Record / Tuple', en: 'record = tuple (แถว)', c: 'blue', hint: 'หนึ่งแถว = หนึ่งรายการของ entity',
+      short: 'ชุด field ที่ประกอบกันอธิบาย entity หนึ่งรายการ คือหนึ่งแถวของตาราง เช่น ลูกค้า C1 หนึ่งคน',
+      more: '<p>record กับ tuple คือสิ่งเดียวกัน ตารางที่มี 100 แถวก็คือมี 100 record</p>',
+      viz: v => { v.innerHTML = `<div class="tw"><table class="dt mini"><thead><tr><th>CustID</th><th>Name</th><th>Phone</th></tr></thead><tbody><tr><td>C1</td><td>สมชาย</td><td>081-111</td></tr><tr class="rowhl"><td>C2</td><td>มานี</td><td>082-222</td></tr></tbody></table></div>`; } },
+    commonfield: { t: 'Common field', en: 'common field', c: 'blue', hint: 'field ที่โผล่ในหลายตาราง ใช้เชื่อมตาราง',
+      short: 'field (attribute) ที่ปรากฏในมากกว่าหนึ่งตาราง เช่น CustID อยู่ทั้งใน CUSTOMER และ ORDER ใช้เป็นตัวเชื่อมสองตารางเข้าด้วยกัน',
+      more: '<p>common field ที่เชื่อมตารางจริงๆ คือ {{pk}} ของตารางหนึ่งกับ {{fk}} ในอีกตาราง</p>',
+      viz: v => { v.innerHTML = DV.mt(['CustID', 'Name'], [['C1', 'สมชาย']], { pk: [0], hl: [0], cap: 'CUSTOMER' }) + DV.mt(['OrderNo', 'CustID'], [['501', 'C1']], { pk: [0], fk: [1], hl: [1], cap: 'ORDER' }); },
+      parts: ['pk', 'fk'] },
+
+    /* ===== rose: problems ===== */
+    redundancy: { t: 'Redundancy', en: 'data redundancy (ข้อมูลซ้ำซ้อน)', c: 'rose', hint: 'ข้อมูลเดียวกันถูกเก็บหลายที่',
+      short: 'ข้อมูลเรื่องเดียวกันถูกเก็บซ้ำหลายที่ ทำให้เปลืองที่ ต้องกรอกหลายรอบ และเสี่ยงที่แต่ละที่จะไม่ตรงกัน',
+      more: '<p>ถ้าลูกค้าเปลี่ยนเบอร์โทร แต่แก้ไฟล์เดียว อีกไฟล์ยังเป็นเบอร์เก่า ข้อมูลสองที่ขัดแย้งกันและไม่มีใครรู้ว่าอันไหนถูก</p><p>เป้าหมายหลักของการออกแบบฐานข้อมูลและ normalization คือลดสิ่งนี้ (สไลด์ 41)</p>',
+      parts: ['anomaly', 'norm'] },
+    anomaly: { t: 'Anomaly', en: 'insert / update / delete anomaly', c: 'rose', hint: 'ปัญหาตอนเพิ่ม แก้ ลบ ข้อมูล',
+      short: 'ปัญหาที่เกิดตอนเพิ่ม แก้ หรือลบข้อมูล เพราะตารางเก็บข้อมูลหลายเรื่องปนกัน แก้ได้ด้วย normalization',
+      more: '<p>สไลด์ใช้ภาษาไทยว่า อะนอร์มัลไลของการลบและแก้ไขข้อมูล มีสามแบบ</p>',
+      parts: ['anomins', 'anomupd', 'anomdel'] },
+    anomins: { t: 'Insert anomaly', en: 'insert anomaly', c: 'rose', hint: 'เพิ่มข้อมูลเรื่องหนึ่งไม่ได้ถ้าไม่มีอีกเรื่อง',
+      short: 'เพิ่มข้อมูลเรื่องหนึ่งไม่ได้ ถ้ายังไม่มีข้อมูลของอีกเรื่องที่อยู่ในตารางเดียวกัน',
+      more: '<p>เช่น ตารางที่ key คือ ApptNo + ProcID จะเพิ่มหัตถการใหม่ที่ยังไม่มีใครใช้ไม่ได้ เพราะไม่มี ApptNo ให้ใส่ key</p>' },
+    anomupd: { t: 'Update anomaly', en: 'update anomaly', c: 'rose', hint: 'ต้องแก้หลายแถว ถ้าลืมแถวเดียวข้อมูลขัดแย้ง',
+      short: 'ข้อมูลหนึ่งอย่างถูกเก็บในหลายแถว ต้องแก้ทุกแถว ถ้าลืมแถวใดแถวหนึ่งข้อมูลจะขัดแย้งกัน',
+      more: '<p>เช่น คนไข้ PT01 มี 3 แถวในตารางเดียว เปลี่ยนเบอร์โทรต้องแก้ 3 แถว ในตารางที่แยก PATIENT ออกแล้วแก้แถวเดียว</p>' },
+    anomdel: { t: 'Delete anomaly', en: 'delete anomaly', c: 'rose', hint: 'ลบข้อมูลหนึ่งแล้วข้อมูลอีกเรื่องหายไปด้วย',
+      short: 'ลบข้อมูลเรื่องหนึ่งแล้วข้อมูลอีกเรื่องที่ไม่ได้ตั้งใจลบหายไปด้วย เพราะอยู่ในแถวเดียวกัน',
+      more: '<p>เช่น ยกเลิกนัด AP-502 ซึ่งเป็นนัดเดียวของคนไข้ PT02 และหัตถการ PR03 ข้อมูลคนไข้และหัตถการนั้นหายไปจากระบบ</p>' },
+    repgroup: { t: 'Repeating group', en: 'repeating group', c: 'rose', hint: 'ชุด field ที่เกิดซ้ำได้หลายชุดในหนึ่ง record',
+      short: 'ชุด field ตั้งแต่หนึ่งตัวขึ้นไปที่เกิดซ้ำได้หลายครั้งภายใน record เดียว และแต่ละครั้งมีค่าต่างกัน',
+      more: '<p>เช่น ORDER หนึ่งใบมีหลายสินค้า ชุด (ProductNo, ชื่อ, จำนวน) จึงซ้ำกันได้ในแถวเดียว ตารางที่มี repeating group คือ {{unf}} วิธีแก้คือ {{nf1}}</p><p>ในสไลด์ ORDER เป็น key ของตาราง ส่วน PRODUCT NUMBER เป็น key ของ repeating group</p>',
+      viz: v => { v.innerHTML = `<div class="tw"><table class="dt mini"><thead><tr><th class="pk"><span>OrderNo</span></th><th>CustID</th><th class="rg">ProdNo</th><th class="rg">Qty</th></tr></thead><tbody><tr><td>86223</td><td>C1</td><td class="rg">P1<br>P4<br>P7</td><td class="rg">2<br>1<br>5</td></tr></tbody></table></div>`; },
+      parts: ['unf', 'nf1'] },
+    partial: { t: 'Partial dependency', en: 'partial dependency', c: 'rose', hint: 'ขึ้นกับ key แค่ส่วนหนึ่ง (ผิด 2NF)',
+      short: 'field ที่ไม่ใช่ key ขึ้นกับ primary key เพียงบางส่วน (key ต้องเป็นหลาย field ถึงจะเกิดได้) ทำให้ตารางไม่ผ่าน 2NF',
+      more: '<p>ตัวอย่างสไลด์ 45: ABC (ชิ้นส่วน, ชื่อโกดัง, จำนวนสินค้า, ที่อยู่โกดัง) key คือ ชิ้นส่วน + ชื่อโกดัง แต่ที่อยู่โกดังขึ้นกับชื่อโกดังอย่างเดียว วิธีแก้: แยกที่อยู่โกดังไปตารางโกดัง</p><p>ถ้า key มี field เดียว จะเกิด partial dependency ไม่ได้</p>',
+      viz: v => { v.innerHTML = `<div class="vflow"><div class="vrow"><span class="vc k">ชิ้นส่วน</span><span class="vc k">ชื่อโกดัง</span><span class="vc">จำนวน</span><span class="vc x">ที่อยู่โกดัง</span></div><div class="vnote"><span class="vc k">ชื่อโกดัง</span> ⟶ <span class="vc x">ที่อยู่โกดัง</span> (ไม่ต้องรู้ชิ้นส่วน)</div></div>`; },
+      parts: ['nf2', 'fd'] },
+    transitive: { t: 'Transitive dependency', en: 'non-key → non-key dependency', c: 'rose', hint: 'non-key ขึ้นกับ non-key (ผิด 3NF)',
+      short: 'field ที่ไม่ใช่ key ขึ้นกับ field ที่ไม่ใช่ key อีกตัวหนึ่ง แทนที่จะขึ้นกับ key โดยตรง ทำให้ตารางไม่ผ่าน 3NF',
+      more: '<p>ตัวอย่างสไลด์ 46: ผู้บริหาร (เลขประจำตัว, ชื่อนามสกุล, ที่อยู่, ตำแหน่ง, ยี่ห้อรถประจำตำแหน่ง) ยี่ห้อรถขึ้นกับตำแหน่ง ตำแหน่งขึ้นกับเลขประจำตัวอีกที จึงเป็นทอดๆ (เลขประจำตัว → ตำแหน่ง → ยี่ห้อรถ) วิธีแก้: แยกตำแหน่งกับยี่ห้อรถไปตารางใหม่</p>',
+      viz: v => { v.innerHTML = `<div class="vflow"><div class="vrow"><span class="vc k">เลขประจำตัว</span><span class="vsep">⟶</span><span class="vc">ตำแหน่ง</span><span class="vsep">⟶</span><span class="vc x">ยี่ห้อรถ</span></div></div>`; },
+      parts: ['nf3', 'fd'] },
+
+    /* ===== teal: DBMS, storage, control ===== */
+    dbms: { t: 'DBMS', en: 'Database Management System', c: 'teal', hint: 'ซอฟต์แวร์จัดการฐานข้อมูล',
+      short: 'ระบบที่ช่วยให้ผู้ใช้จัดการข้อมูลในฐานข้อมูล เช่น เพิ่ม (add, insert), แก้ (update), ลบ (delete) ตัวอย่าง: Access, Oracle, MySQL',
+      more: '<p>DBMS ประกอบด้วย interface สำหรับ 3 กลุ่มผู้ใช้, DML, schema กับ subschema และ physical data repository</p>',
+      parts: ['iface', 'dml', 'schema', 'subschema', 'repo', 'dba', 'dbbenefit'], partsLabel: 'ส่วนประกอบ' },
+    iface: { t: 'Interface', en: 'interfaces for users / DBA / related systems', c: 'teal', hint: 'ทางเข้าของผู้ใช้ DBA และระบบอื่น',
+      short: 'ช่องทางที่ผู้ใช้สามกลุ่มใช้คุยกับ DBMS: ผู้ใช้ทั่วไป, ผู้ดูแลฐานข้อมูล (DBA) และระบบสารสนเทศอื่นที่เกี่ยวข้อง',
+      more: '<p><b>ผู้ใช้</b>: ใช้ query ที่เตรียมไว้แล้ว (predefined query) และคำสั่งบนหน้าเมนู (switchboard) หรือใช้ภาษา query เข้าไปดึงข้อมูลเอง</p><p><b>DBA</b>: รับผิดชอบการจัดการและสนับสนุน DBMS</p><p><b>ระบบอื่น</b>: DBMS ให้บริการข้อมูลแก่ระบบสารสนเทศที่เกี่ยวข้อง</p>',
+      parts: ['dba'] },
+    dml: { t: 'DML', en: 'Data Manipulation Language', c: 'teal', hint: 'ภาษา/คำสั่งที่ควบคุมการทำงานกับข้อมูล',
+      short: 'ส่วนของ DBMS ที่ควบคุมการดำเนินการกับฐานข้อมูล เช่น เพิ่ม แก้ ลบ และค้นข้อมูล',
+      more: '<p>คำสั่งทุกอย่างที่ผู้ใช้หรือระบบอื่นส่งเข้ามา ต้องผ่าน DML ก่อนจะแตะข้อมูลจริง</p>' },
+    schema: { t: 'Schema', en: 'schema', c: 'teal', hint: 'คำอธิบายทุก field ทุกตาราง ทุกความสัมพันธ์',
+      short: 'คำอธิบายของทุก field ทุกตาราง และทุกความสัมพันธ์ในฐานข้อมูล เป็นแผนผังภาพรวมทั้งหมด',
+      more: '<p>schema บอกว่ามีตารางอะไร แต่ละตารางมี field อะไร ชนิดข้อมูลอะไร และตารางไหนเชื่อมกับตารางไหน ส่วน {{subschema}} คือเฉพาะบางส่วนของมัน</p>',
+      parts: ['subschema'] },
+    subschema: { t: 'Subschema', en: 'subschema', c: 'teal', hint: 'ส่วนของฐานข้อมูลที่ระบบ/ผู้ใช้นั้นเห็นได้',
+      short: 'ส่วนของฐานข้อมูลที่ระบบหรือผู้ใช้คนหนึ่งต้องการหรือได้รับอนุญาตให้เข้าถึง',
+      more: '<p>ฝ่ายขายอาจเห็นแค่ CUSTOMER กับ ORDER ส่วนตารางเงินเดือนอยู่นอก subschema ของเขา จึงเป็นกลไกหนึ่งของ security (ผู้ใช้ต่างกลุ่มได้สิทธิ์ต่างระดับ)</p>',
+      parts: ['schema'] },
+    repo: { t: 'Physical data repository', en: 'physical data repository', c: 'teal', hint: 'ที่เก็บข้อมูลจริง รวม schema/subschema',
+      short: 'ที่เก็บข้อมูลจริงทางกายภาพ ซึ่งรวม schema และ subschema ไว้ด้วย อาจอยู่ที่เดียว (centralized) หรือกระจายหลายที่ (distributed)',
+      more: '<p>ใช้ซอฟต์แวร์ที่รองรับ {{odbc|ODBC}} เพื่อให้ระบบกับ DBMS ต่างยี่ห้อคุยกันได้</p>',
+      parts: ['odbc', 'indep'] },
+    odbc: { t: 'ODBC', en: 'Open Database Connectivity', c: 'teal', hint: 'มาตรฐานให้ระบบกับ DBMS คุยกันได้',
+      short: 'Open database connectivity: มาตรฐานซอฟต์แวร์ที่ทำให้ระบบต่างๆ กับ DBMS ต่างยี่ห้อสื่อสารกันได้',
+      more: '<p>physical data repository ที่ใช้ซอฟต์แวร์ที่เข้ากับ ODBC ได้ จึงเปลี่ยนหรือเพิ่ม DBMS ได้โดยไม่ต้องเขียนระบบเดิมใหม่</p>' },
+    dba: { t: 'DBA', en: 'Database Administrator', c: 'teal', hint: 'ผู้ดูแลฐานข้อมูลทั้งองค์กร',
+      short: 'ผู้ดูแลฐานข้อมูล: ประเมินความต้องการภาพรวมขององค์กรและดูแลบำรุงรักษาฐานข้อมูล',
+      more: '<p>งานของ DBA เช่น กำหนดมาตรฐานชื่อ/รูปแบบข้อมูล, กำหนดสิทธิ์ผู้ใช้ (security), สำรองและกู้ข้อมูล</p>' },
+    dbbenefit: { t: 'ข้อดีของ database', en: 'why use a database', c: 'teal', hint: 'scalability, economy of scale, มาตรฐาน, security, independence',
+      short: 'ข้อดีตามสไลด์ 5–6: ขยายระบบได้ (scalability), ใช้ฮาร์ดแวร์คุ้ม (economy of scale), มาตรฐานชัดทั้งองค์กร, security ดีขึ้น และ data independence',
+      more: '<p>ทั้งหมดมีที่มาจากการเก็บข้อมูลที่เดียวและมี {{dba}} ดูแลภาพรวม</p>',
+      parts: ['scal', 'econ', 'stdz', 'secur', 'indep'] },
+    scal: { t: 'Scalability', en: 'scalability', c: 'teal', hint: 'ขยาย ปรับ หรือลดขนาดระบบได้',
+      short: 'ระบบสามารถขยาย แก้ไข หรือลดขนาดได้ตามความต้องการ', more: '<p>เช่น ฐานข้อมูลยอดขายชุดเดียวรองรับระบบธุรกิจได้ 4 ระบบ (สไลด์ 5) เพิ่มระบบที่ห้าก็ใช้ฐานข้อมูลเดิมได้</p>' },
+    econ: { t: 'Economy of scale', en: 'economy of scale', c: 'teal', hint: 'ใช้ฮาร์ดแวร์ได้คุ้มขึ้น',
+      short: 'การออกแบบแบบ database ทำให้ใช้ฮาร์ดแวร์ได้คุ้มค่าขึ้น เพราะหลายระบบแชร์ทรัพยากรชุดเดียวกัน', more: '' },
+    stdz: { t: 'Stronger standards', en: 'stronger standards', c: 'teal', hint: 'ชื่อ รูปแบบ เอกสารเหมือนกันทั้งองค์กร',
+      short: 'มาตรฐานของชื่อข้อมูล รูปแบบ และเอกสาร ถูกใช้เหมือนกันทั่วทั้งองค์กร', more: '' },
+    secur: { t: 'Better security', en: 'better security', c: 'teal', hint: 'เฉพาะผู้มีสิทธิ์เข้าถึง แต่ละคนระดับต่างกัน',
+      short: 'เฉพาะผู้ใช้ที่ถูกต้องเท่านั้นที่เข้าถึงฐานข้อมูลได้ และผู้ใช้แต่ละคนมีระดับการเข้าถึงต่างกัน', more: '<p>กลไกคือ {{subschema}} และรหัสผ่านสิทธิ์ต่างๆ ดูหัวข้อ {{control|data control}}</p>' },
+    indep: { t: 'Data independence', en: 'data independence', c: 'teal', hint: 'ระบบไม่ผูกกับวิธีเก็บข้อมูลจริง',
+      short: 'ระบบที่ใช้งานผ่าน DBMS เป็นอิสระจากวิธีที่ข้อมูลจริงถูกจัดเก็บ เปลี่ยนวิธีเก็บหรือที่เก็บได้โดยไม่ต้องแก้ระบบเหล่านั้น',
+      more: '<p>เช่น ย้ายไฟล์ข้อมูลไปเครื่องใหม่ โปรแกรมของผู้ใช้ไม่ต้องแก้ เพราะมันคุยกับ DBMS ไม่ได้คุยกับไฟล์ตรงๆ</p>' },
+    middleware: { t: 'Middleware', en: 'middleware (web-based data design)', c: 'teal', hint: 'ซอฟต์แวร์คั่นกลางเชื่อมเว็บกับ database',
+      short: 'ซอฟต์แวร์ที่เชื่อมแอปพลิเคชันต่างชนิดเข้าด้วยกัน ให้แลกเปลี่ยนข้อมูลกันได้ ใช้เชื่อมฐานข้อมูลกับเว็บ',
+      more: '<p>ฐานข้อมูลสร้างและจัดการด้วยภาษาและคำสั่งที่ไม่เกี่ยวกับ HTML เลย เป้าหมายของ web-based data design คือต่อฐานข้อมูลเข้ากับเว็บเพื่อดูและอัปเดตข้อมูลผ่านเว็บ โดยข้อมูลต้องปลอดภัยแต่ผู้มีสิทธิ์เข้าถึงได้ง่าย</p>' },
+    warehouse: { t: 'Data warehouse', en: 'data warehouse', c: 'teal', hint: 'คลังข้อมูลรวมทั้งบริษัท',
+      short: 'ชุดข้อมูลที่รวมเป็นหนึ่งเดียว อาจมีข้อมูลที่ดูไม่เกี่ยวกัน ไม่ว่าจะเก็บอยู่ที่ไหนในบริษัท ผู้ใช้เลือกมิติ (dimension) แล้วดึงข้อมูลได้โดยไม่ต้องรู้ว่าเก็บที่ไหนอย่างไร',
+      more: '<p>รวมข้อมูลจากหลายระบบ (ขาย บัญชี ซ่อม ...) ไว้ที่เดียวสำหรับวิเคราะห์ ต่างจากฐานข้อมูลปฏิบัติงานที่ใช้บันทึกรายการประจำวัน</p>',
+      parts: ['mart', 'mining'] },
+    mart: { t: 'Data mart', en: 'data mart', c: 'teal', hint: 'คลังข้อมูลย่อยของแผนกเดียว',
+      short: 'คลังข้อมูลที่ออกแบบให้ตอบความต้องการของแผนกใดแผนกหนึ่งโดยเฉพาะ',
+      more: '<p>มีขนาดเล็กกว่า {{warehouse}} เพราะเก็บเฉพาะข้อมูลที่แผนกนั้นใช้ เช่น mart ของฝ่ายการตลาด</p>' },
+    mining: { t: 'Data mining', en: 'data mining', c: 'teal', hint: 'หา pattern และความสัมพันธ์ในข้อมูล',
+      short: 'การค้นหารูปแบบ (pattern) และความสัมพันธ์ที่มีความหมายซ่อนอยู่ในข้อมูล เช่น ข้อมูล clickstream ของเว็บ',
+      more: '<p>เป้าหมายที่สไลด์ยกตัวอย่าง: เพิ่มจำนวนหน้าที่ดูต่อครั้ง, เพิ่มลูกค้าที่ถูกแนะนำต่อ, ลดจำนวนคลิกกว่าจะปิดการขาย, เพิ่มการ checkout ต่อการเข้าชมและกำไรเฉลี่ยต่อ checkout และใช้สร้างโปรไฟล์ลูกค้าใหม่</p>' },
+    control: { t: 'Data control', en: 'data control & security', c: 'teal', hint: 'จำกัดสิทธิ์ สำรอง กู้คืน บันทึกตรวจสอบ',
+      short: 'DBMS ที่ดีต้องมีกลไกควบคุมและรักษาความปลอดภัยในตัว ได้แก่ จำกัดการเข้าถึง, user ID/password/สิทธิ์/เข้ารหัส, สำรองข้อมูล, กู้คืน และบันทึกการใช้งาน',
+      more: '',
+      parts: ['access', 'passw', 'encrypt', 'backup', 'recovery', 'auditlog'] },
+    access: { t: 'Limited access', en: 'limited access to files and databases', c: 'teal', hint: 'ให้เข้าถึงเฉพาะส่วนที่จำเป็น',
+      short: 'จำกัดให้แต่ละคนเข้าถึงไฟล์และฐานข้อมูลเฉพาะส่วนที่จำเป็นกับงาน', more: '<p>ใช้ {{subschema}} กำหนดว่าใครเห็นอะไร</p>' },
+    passw: { t: 'User ID / password / permission', en: 'user ID, password, permissions', c: 'teal', hint: 'พิสูจน์ตัวตนและกำหนดสิทธิ์',
+      short: 'user ID กับ password พิสูจน์ว่าผู้ใช้คือใคร ส่วน permission กำหนดว่าผู้ใช้นั้นทำอะไรได้ (อ่านอย่างเดียว แก้ไขได้ ลบได้)', more: '' },
+    encrypt: { t: 'Encryption', en: 'encryption', c: 'teal', hint: 'แปลงข้อมูลให้อ่านไม่ออกถ้าไม่มีกุญแจ',
+      short: 'แปลงข้อมูลให้อ่านไม่ออกถ้าไม่มีกุญแจถอดรหัส แม้มีคนขโมยไฟล์ไปก็เปิดอ่านไม่ได้', more: '<p>ต่างจากรหัสผ่านที่กันการเข้าระบบ encryption ปกป้องตัวข้อมูลเอง</p>' },
+    backup: { t: 'Backup', en: 'backup copies', c: 'teal', hint: 'สำเนาข้อมูลเก็บไว้ตามระยะเวลาที่กำหนด',
+      short: 'สำเนาของฐานข้อมูลที่ต้องเก็บรักษาไว้ตามระยะเวลาที่กำหนด', more: '' },
+    recovery: { t: 'Recovery', en: 'recovery procedures', c: 'teal', hint: 'ขั้นตอนใช้ backup กู้ข้อมูลคืน',
+      short: 'ขั้นตอนที่ใช้สำเนา backup คืนไฟล์หรือฐานข้อมูลให้กลับมาใช้งานได้ หลังข้อมูลเสียหายหรือสูญหาย', more: '<p>backup คือสิ่งที่เตรียมไว้ recovery คือการนำมาใช้</p>' },
+    auditlog: { t: 'Audit log / audit field', en: 'audit log files and audit fields', c: 'teal', hint: 'บันทึกว่าใครแก้อะไรเมื่อไหร่',
+      short: 'ไฟล์บันทึกการใช้งาน (audit log) และ field สำหรับตรวจสอบ (audit field) ที่บอกว่าใครเพิ่ม แก้ ลบข้อมูลใด เมื่อใด', more: '' },
+
+    /* ===== amber: keys ===== */
+    key: { t: 'Key', en: 'key fields', c: 'amber', hint: 'field ที่ใช้ระบุหรือเชื่อม record',
+      short: 'field (หรือหลาย field) ที่ใช้ระบุ ค้นหา หรือเชื่อม record ในตาราง มี 5 ชนิดตามหน้าที่: primary, combination, candidate, foreign, secondary',
+      more: '<p>ชนิดของ key ตัดสินจากหน้าที่ของมันในตาราง ไม่ใช่จากชื่อ field</p>',
+      parts: ['pk', 'combkey', 'candkey', 'fk', 'seckey'] },
+    pk: { t: 'Primary key (PK)', en: 'primary key', c: 'amber', hint: 'ระบุ record ได้เจาะจงและไม่เกินจำเป็น',
+      short: 'field หรือหลาย field รวมกัน ที่ระบุ record หนึ่งแถวได้เจาะจงเพียงแถวเดียว (unique) และไม่เกินจำเป็น (minimal)',
+      more: '<p>ทุกตารางต้องมี PK (หลักการออกแบบสไลด์ 41) ค่า PK ซ้ำกันไม่ได้และห้ามว่าง เขียนขีดเส้นใต้ใน standard notation: ORDER (<u>OrderNo</u>, OrderDate, CustID)</p>',
+      viz: v => { v.innerHTML = DV.mt(['StdID', 'Name', 'Major'], [['6501', 'สมชาย', 'CS'], ['6502', 'สมหญิง', 'CS']], { pk: [0], cap: 'STUDENT' }); },
+      parts: ['candkey', 'combkey', 'fk'] },
+    combkey: { t: 'Combination key', en: 'combination (composite) key', c: 'amber', hint: 'PK ที่ต้องใช้หลาย field รวมกัน',
+      short: 'primary key ที่ประกอบจากหลาย field รวมกัน เพราะ field เดียวไม่พอที่จะระบุ record',
+      more: '<p>เช่น ตาราง ENROLL (StdID, CourseID, Grade): นักศึกษาคนเดียวลงหลายวิชา วิชาเดียวมีหลายคน ต้องใช้ StdID + CourseID ถึงระบุแถวได้ และต้อง minimal คือตัดตัวใดออกแล้วต้องซ้ำ</p>',
+      viz: v => { v.innerHTML = DV.mt(['StdID', 'CourseID', 'Grade'], [['6501', 'C1', 'A'], ['6501', 'C2', 'B'], ['6502', 'C1', 'B']], { pk: [0, 1], cap: 'ENROLL' }); } },
+    candkey: { t: 'Candidate key', en: 'candidate key', c: 'amber', hint: 'ตัวเลือกที่เป็น PK ได้',
+      short: 'field ใดก็ตาม (หรือกลุ่ม field) ที่ทำหน้าที่เป็น primary key ได้ คือ unique และ minimal ทุกตัวเลือกเป็น candidate key เลือกมาหนึ่งตัวเป็น PK',
+      more: '<p>เช่น STUDENT มี StdID กับเลขบัตรประชาชนไม่ซ้ำทั้งคู่ ทั้งสองเป็น candidate key เลือก StdID เป็น PK อีกตัวเป็น candidate ที่ไม่ได้ถูกเลือก</p>' },
+    fk: { t: 'Foreign key (FK)', en: 'foreign key', c: 'amber', hint: 'field ที่ชี้ไปหา PK ของอีกตาราง',
+      short: 'field ในตารางหนึ่งที่ค่าต้องตรงกับค่า primary key ของอีกตารางหนึ่ง เพื่อให้สองตารางมีความสัมพันธ์กัน',
+      more: '<p>FK อยู่ใน<b>ตารางฝั่ง many</b> เช่น ORDER มี CustID เป็น FK ชี้ไป CUSTOMER ค่า FK ซ้ำกันได้ (ลูกค้าคนเดียวมีหลาย order) และเป็น {{commonfield}} ชนิดหนึ่ง</p><p>การรักษาให้ FK ชี้ถึงของจริงเสมอ คือ {{ri}}</p>',
+      viz: v => { v.innerHTML = DV.mt(['CustID', 'Name'], [['C1', 'สมชาย']], { pk: [0], cap: 'CUSTOMER' }) + '<div class="vnote" style="text-align:center">▲ PK ตรงกับ FK ▼</div>' + DV.mt(['OrderNo', 'CustID'], [['501', 'C1'], ['502', 'C1']], { pk: [0], fk: [1], cap: 'ORDER' }); },
+      parts: ['ri', 'commonfield'] },
+    seckey: { t: 'Secondary key', en: 'secondary key', c: 'amber', hint: 'field ที่ใช้ค้นหา ไม่ต้อง unique',
+      short: 'field หรือกลุ่ม field ที่ใช้เข้าถึงหรือค้นหา record ซ้ำได้ ไม่ต้อง unique',
+      more: '<p>เช่น ค้นนักศึกษาตามสาขา (Major) ได้หลายคน จึงไม่ใช่ PK แต่ช่วยให้ค้นได้เร็ว</p>' },
+    ri: { t: 'Referential integrity', en: 'referential integrity', c: 'amber', hint: 'FK ต้องชี้ไปหา PK ที่มีอยู่จริงเสมอ',
+      short: 'ชุดกฎที่ป้องกันข้อมูลขัดแย้งและคุณภาพข้อมูลเสีย ใจความคือ ค่า FK ในตารางลูกต้องตรงกับ PK ที่มีอยู่จริงในตารางแม่',
+      more: '<p>ตัวอย่างที่ต้องจำ (ตาราง CUSTOMER เป็นแม่ ORDER เป็นลูก):</p><p>เพิ่ม ORDER ที่ CustID ไม่มีใน CUSTOMER ไม่ได้ ลบ CUSTOMER ที่ยังมี ORDER อ้างถึงไม่ได้ แต่ลบ ORDER (ลูก) ได้เสมอ</p><p>Microsoft Access ให้ผู้ใช้ติ๊กเลือกบังคับกฎนี้ได้ (สไลด์ 12)</p>',
+      parts: ['fk', 'pk'] },
+
+    /* ===== violet: ERD ===== */
+    erd: { t: 'ERD', en: 'Entity-Relationship Diagram', c: 'violet', hint: 'ผังแสดง entity และความสัมพันธ์',
+      short: 'ผังที่แสดง entity เป็นกล่อง และความสัมพันธ์เป็นเส้นเชื่อม entity เขียนป้ายชื่อ entity เป็นคำนามเอกพจน์ ป้ายความสัมพันธ์เป็นคำกริยา แล้วอ่านเป็นประโยคอังกฤษสั้นๆ ได้',
+      more: '<p>ขั้นตอนวาด: ระบุ entity จากขั้นวิเคราะห์ แล้วดูว่าแต่ละคู่สัมพันธ์กันแบบไหน เช่น CUSTOMER places ORDER</p>',
+      parts: ['rel', 'r11', 'r1m', 'rmn', 'cardinality'] },
+    rel: { t: 'Relationship', en: 'relationship (verb)', c: 'violet', hint: 'เส้นเชื่อม entity ตั้งชื่อด้วยคำกริยา',
+      short: 'ความเชื่อมโยงระหว่างสอง entity ตั้งชื่อด้วยคำกริยา เช่น CUSTOMER places ORDER แล้วอ่านเป็นประโยคได้', more: '<p>ควรอ่านได้ทั้งสองทิศ: CUSTOMER places ORDER และ ORDER is placed by CUSTOMER (ERD ห้องสมุดในสไลด์ 20 เขียนคำอธิบายสองทิศ)</p>' },
+    r11: { t: 'One-to-one (1:1)', en: 'one-to-one', c: 'violet', hint: 'แต่ละฝั่งมีอีกฝั่งได้ 1',
+      short: 'ความสัมพันธ์ที่ entity แรกหนึ่ง record มี entity ที่สองเพียงหนึ่ง record พอดี', more: '<p>เช่น พนักงานหนึ่งคนมีคู่สมรสได้ไม่เกินหนึ่งคน (EMPLOYEE – SPOUSE)</p>',
+      viz: v => { v.innerHTML = oneGlyph(1, 1); } },
+    r1m: { t: 'One-to-many (1:M)', en: 'one-to-many', c: 'violet', hint: 'ฝั่ง 1 มีฝั่ง many ได้หลายตัว',
+      short: 'ความสัมพันธ์ที่ entity แรกหนึ่ง record เกี่ยวข้องกับ entity ที่สองได้หลาย record แต่ entity ที่สองแต่ละ record สัมพันธ์กับ entity แรกได้เพียงหนึ่ง record',
+      more: '<p>เช่น CUSTOMER 1 : M ORDER ลูกค้าหนึ่งคนมีหลายใบสั่งซื้อ แต่ใบสั่งซื้อหนึ่งใบเป็นของลูกค้าคนเดียว ตาราง ORDER จึงถือ FK (CustID)</p>' },
+    rmn: { t: 'Many-to-many (M:N)', en: 'many-to-many', c: 'violet', hint: 'หลายต่อหลาย ต้องมี associative entity',
+      short: 'ความสัมพันธ์ที่ entity แรกหนึ่ง record เกี่ยวข้องกับ entity ที่สองได้หลาย record และกลับกันก็เช่นเดียวกัน',
+      more: '<p>เช่น STUDENT กับ COURSE: นักศึกษาลงหลายวิชา วิชามีหลายนักศึกษา เก็บตรงๆ ไม่ได้ ต้องใส่ {{assoc}} คั่นกลาง ซึ่งแปลง M:N ให้เป็น 1:M สองเส้น</p>',
+      parts: ['assoc'] },
+    assoc: { t: 'Associative entity', en: 'associative entity', c: 'violet', hint: 'entity ตัวคั่นกลางที่แตก M:N เป็น 1:M สองเส้น',
+      short: 'entity ที่เกิดจากเหตุการณ์หรือรายการที่เชื่อมสอง entity ในความสัมพันธ์ M:N มี attribute ของตัวเอง',
+      more: '<p>PK ของมันคือ PK ของสอง entity ที่มันเชื่อมรวมกัน (combination key) และแต่ละตัวก็เป็น FK ด้วย</p><p>ตัวอย่างในสไลด์: ORDER LINE คั่นกลางระหว่าง ORDER กับ PRODUCT, GRADE คั่นกลางระหว่าง STUDENT กับ COURSE ในข้อทันตกรรมคือ TREATMENT คั่นระหว่าง APPOINTMENT กับ PROCEDURE (field Units เป็น attribute ของมัน)</p>',
+      viz: v => { v.innerHTML = DV.mt(['StdID', 'CourseID', 'Grade'], [['6501', 'C1', 'A'], ['6501', 'C2', 'B']], { pk: [0, 1], fk: [0, 1], cap: 'GRADE (associative)' }); },
+      parts: ['combkey'] },
+    cardinality: { t: 'Cardinality', en: 'cardinality', c: 'violet', hint: 'จำนวนที่ record ของสอง entity สัมพันธ์กัน',
+      short: 'บอกความสัมพันธ์เชิงตัวเลขระหว่างสอง entity ว่า record ของ entity หนึ่งเกี่ยวกับ record ของอีก entity ได้กี่ตัว ขั้นต่ำเท่าไร ขั้นสูงเท่าไร',
+      more: '<p>ใน ERD ใช้สัญลักษณ์ {{crow|crow\'s foot}} ที่ปลายเส้น มี 4 แบบ: one and only one, zero or one, one or many, zero or many</p>',
+      parts: ['crow'] },
+    crow: { t: "Crow's foot notation", en: "crow's foot notation", c: 'violet', hint: 'ขีด วงกลม ตีนกา ที่ปลายเส้น',
+      short: 'วิธีเขียน cardinality ด้วยสัญลักษณ์ที่ปลายเส้น: ขีด = หนึ่ง, วงกลม = ศูนย์, ตีนกา = หลาย สัญลักษณ์ที่อยู่ติด entity ใด บอกจำนวนของ entity นั้น',
+      more: '<p>สัญลักษณ์อ่านจากตัวที่ <b>ใกล้กล่อง</b> ก่อน (ขั้นสูงสุด) แล้วค่อยตัวที่ไกลกล่อง (ขั้นต่ำ) เช่น ตีนกา + วงกลม = ศูนย์หรือหลาย</p>',
+      viz: v => { v.innerHTML = `<svg viewBox="0 0 330 200" style="color:var(--c-violet);max-width:420px;margin:auto">${glyphRow(1, 1, 'one and only one', 28)}${glyphRow(0, 1, 'zero or one', 80)}${glyphRow(1, 'M', 'one or many', 132)}${glyphRow(0, 'M', 'zero or many', 184)}</svg>`; },
+      parts: ['sbar', 'scircle', 'sfoot'] },
+    sbar: { t: 'ขีด', en: 'bar = one', c: 'violet', hint: 'เท่ากับ 1',
+      short: 'ขีดตั้งฉากกับเส้น หมายถึงหนึ่ง ขีดหนึ่งขีดติดกล่อง = สูงสุดหนึ่ง สองขีด = หนึ่งและมีอย่างน้อยหนึ่ง (one and only one)',
+      more: '<p>ขีดที่อยู่ไกลกล่องมาก (หลังตีนกา) หมายถึงขั้นต่ำเท่ากับ 1 คือบังคับให้มี</p>', viz: v => { v.innerHTML = oneGlyph(1, 1); } },
+    scircle: { t: 'วงกลม', en: 'circle = zero', c: 'violet', hint: 'เท่ากับ 0 (ไม่บังคับ)',
+      short: 'วงกลมหมายถึงศูนย์ คือไม่จำเป็นต้องมีก็ได้ (optional) อยู่ไกลสุดจากกล่อง', more: '<p>circle + bar = zero or one, circle + crow\'s foot = zero or many</p>', viz: v => { v.innerHTML = oneGlyph(0, 1); } },
+    sfoot: { t: 'ตีนกา', en: "crow's foot = many", c: 'violet', hint: 'เท่ากับ หลาย',
+      short: 'สัญลักษณ์สามแฉกคล้ายตีนกา หมายถึงหลาย (many) เปิดแฉกออกด้านที่เป็นฝั่ง many', more: '<p>ตีนกา + ขีด = one or many ตีนกา + วงกลม = zero or many</p>', viz: v => { v.innerHTML = oneGlyph(1, 'M'); } },
+
+    /* ===== green: normalization ===== */
+    norm: { t: 'Normalization', en: 'normalization', c: 'green', hint: 'จัด field เข้าตารางให้ข้อมูลอยู่ที่เดียว',
+      short: 'กระบวนการออกแบบตารางโดยกำหนด field ให้เข้าแต่ละตารางอย่างเหมาะสม และระบุ primary key ของตารางนั้น ผ่านขั้น UNF, 1NF, 2NF, 3NF',
+      more: '<p>ประโยชน์ (สไลด์ 43): 1) ลดที่ว่างที่ต้องใช้เก็บข้อมูล 2) ลดความผิดพลาดที่ข้อมูลไม่ตรงกัน 3) ลด anomaly ของการลบและแก้ไขข้อมูล 4) เพิ่มความคงทนให้โครงสร้างฐานข้อมูล</p>',
+      parts: ['unf', 'nf1', 'nf2', 'nf3', 'notation', 'anomaly'] },
+    notation: { t: 'Standard notation', en: 'standard notation format', c: 'green', hint: 'NAME (FIELD1, FIELD2) ขีดเส้นใต้ PK',
+      short: 'รูปแบบเขียนโครงสร้างตาราง: ชื่อตาราง ตามด้วย field ในวงเล็บ field ที่เป็น primary key ขีดเส้นใต้',
+      more: '<p>ตัวอย่าง: <span class="sch"><b>ORDER</b> ( <span class="f pk">OrderNo</span>, OrderDate, <span class="f fk">CustID</span> )</span></p><p>ในกระดาษ ใช้เส้นใต้สำหรับ PK และเขียนกำกับ (FK) หลัง field ที่เป็น FK repeating group เขียนใส่วงเล็บปีกกา {...}</p>' },
+    unf: { t: 'Unnormalized (UNF)', en: 'unnormalized design', c: 'green', hint: 'ตารางที่ยังมี repeating group',
+      short: 'การออกแบบที่ยังไม่ normalize: ตารางที่มี repeating group อยู่ในแถวเดียว', more: '<p>ขั้นแรกคือการเขียนตารางใน standard notation ให้ชัดว่า field ไหนอยู่ใน repeating group</p>', parts: ['repgroup', 'nf1'] },
+    nf1: { t: '1NF', en: 'First Normal Form', c: 'green', hint: 'ไม่มี repeating group',
+      short: 'ตารางที่ไม่มี repeating group วิธีแปลงคือขยาย primary key ให้รวม key ของ repeating group เข้าไปด้วย แล้วแตก repeating group เป็นหลายแถว',
+      more: '<p>จาก ORDER (<u>OrderNo</u>, ..., {ProdNo, Qty}) ได้ ORDER (<u>OrderNo</u>, <u>ProdNo</u>, ..., Qty) 1NF มี key เป็น combination key ข้อมูลของ order เดียวกันจึงถูกเขียนซ้ำในทุกแถวของ order นั้น ซึ่งแก้ในขั้นต่อไป</p>',
+      parts: ['repgroup', 'combkey', 'nf2'] },
+    fd: { t: 'Functional dependency', en: 'functional dependency  A → B', c: 'green', hint: 'รู้ A แล้วบอก B ได้แน่นอน',
+      short: 'field A ขึ้นกับ field B (เขียน B → A) เมื่อค่าของ A ถูกกำหนดโดยค่าของ B คือรู้ B แล้วบอกค่า A ได้แน่นอนหนึ่งค่า',
+      more: '<p>ลองถามว่า "ถ้ารู้ ProcID ตัวเดียว บอกชื่อหัตถการได้ไหม" ได้ แสดงว่า ProcID → ProcName ส่วนตัวที่อยู่ทางซ้ายเรียกว่าตัวกำหนด (determinant)</p><p>ใช้ตรวจ 2NF: field ที่ไม่ใช่ key ขึ้นกับ key ทั้งก้อนหรือเปล่า ตรวจ 3NF: ขึ้นกับ non-key ตัวอื่นไหม</p>',
+      viz: v => { v.innerHTML = DV.mt(['ProcID', 'ProcName', 'Price'], [['PR01', 'อุดฟัน', '800'], ['PR02', 'ขูดหินปูน', '500']], { pk: [0], hl: [1] }) + '<div class="vnote" style="text-align:center">ProcID ⟶ ProcName, Price</div>'; },
+      parts: ['partial', 'transitive'] },
+    nf2: { t: '2NF', en: 'Second Normal Form', c: 'green', hint: 'อยู่ใน 1NF + ไม่มี partial dependency',
+      short: 'ตารางอยู่ใน 1NF และ field ที่ไม่ใช่ key ทุกตัวขึ้นกับ primary key ทั้งก้อน (ห้ามขึ้นกับบางส่วนของ key)',
+      more: '<p>วิธีแก้: ถ้า field ใดขึ้นกับ key แค่บางส่วน ให้แยก field นั้นกับส่วนของ key ที่มันขึ้นไปสร้างตารางใหม่ (สไลด์ 45) ส่วน key เต็มกับ field ที่ขึ้นกับ key เต็มอยู่ตารางเดิม</p><p>ตาราง 1NF ที่ PK มี field เดียวจึงเป็น 2NF อัตโนมัติ เพราะไม่มี "บางส่วนของ key" ให้ขึ้น</p>',
+      parts: ['partial', 'fd', 'nf3'] },
+    nf3: { t: '3NF', en: 'Third Normal Form', c: 'green', hint: 'อยู่ใน 2NF + non-key ไม่ขึ้นกับ non-key',
+      short: 'ตารางอยู่ใน 2NF และไม่มี field ที่ไม่ใช่ key ตัวใดขึ้นกับ field ที่ไม่ใช่ key ตัวอื่น: ทุก field ขึ้นกับ key, ทั้ง key และไม่ขึ้นกับสิ่งอื่นนอกจาก key',
+      more: '<p>วิธีแก้: ตัว determinant ที่เป็น non-key พร้อมสิ่งที่ขึ้นกับมัน ย้ายไปตารางใหม่ โดยตัว determinant เป็น PK ของตารางใหม่ และเหลือสำเนาไว้เป็น FK ในตารางเดิม (สไลด์ 46)</p><p>ประโยคจำ (สไลด์ 29): all fields depend on the key, the whole key, and nothing but the key</p>',
+      parts: ['transitive', 'fd'] },
+  };
+
+  Hop.define(D);
+  // resolve {{key|label}} markers now that every concept exists
+  for (const k in Hop.C) for (const f of ['short', 'more']) {
+    const c = Hop.C[k];
+    if (typeof c[f] === 'string') c[f] = c[f].replace(/\{\{(\w+)(?:\|([^}]+))?\}\}/g, (m, a, b) => Hop.t(a, b));
+  }
+})();

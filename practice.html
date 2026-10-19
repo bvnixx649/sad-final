@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="th" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ฝึก | Spec SA&amp;D Final</title>
+<meta name="theme-color" content="#0F0F12">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="assets/core.css">
+</head>
+<body>
+<main class="col">
+  <header class="head">
+    <h1 id="ttl">ฝึก</h1>
+    <p class="lede" id="lede"></p>
+  </header>
+  <nav class="qz-chaps" id="chips"></nav>
+  <div id="host"></div>
+</main>
+<script src="assets/core.js"></script>
+<script src="assets/quiz.js"></script>
+<script src="practice/plan.js"></script>
+<script src="practice/data.js"></script>
+<script src="practice/money.js"></script>
+<script src="practice/io.js"></script>
+<script src="practice/deliver.js"></script>
+<script>
+  const id = new URLSearchParams(location.search).get('c') || 'plan';
+  const ch = Hop.CHAPTERS.find(c => c.id === id) || Hop.CHAPTERS[0];
+  Hop.page(ch.n, 'practice');
+  document.title = `ฝึก ${ch.t} | Spec`;
+  Hop.$('#ttl').textContent = ch.t;
+  const items = Spec.BANKS[ch.id] || [];
+  Hop.$('#lede').textContent = `${items.length} ข้อ สุ่มลำดับทุกครั้ง โจทย์คำนวณสุ่มตัวเลขใหม่ทุกรอบ`;
+  Hop.$('#chips').append(...Hop.CHAPTERS.filter(c => c.id !== 'exam').map(c => Hop.el('a', { href: 'practice.html?c=' + c.id, 'aria-current': c.id === ch.id ? 'page' : null, html: `<span class="mono">${c.n}</span> ${Hop.esc(c.t)}` })));
+  requestAnimationFrame(() => { const a = Hop.$('#chips a[aria-current]'); if (a) a.scrollIntoView({ inline: 'center', block: 'nearest' }); });
+  if (items.length) Spec.run(Hop.$('#host'), items); else Hop.$('#host').textContent = 'ยังไม่มีโจทย์';
+</script>
+</body>
+</html>

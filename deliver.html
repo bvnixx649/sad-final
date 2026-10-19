@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ส่งมอบระบบ | Spec</title>
+<meta name="theme-color" content="#0F0F12">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="assets/core.css">
+<link rel="stylesheet" href="assets/deliver.css">
+</head>
+<body>
+<main>
+  <div class="col head">
+    <h1>ส่งมอบระบบ</h1>
+    <p class="lede">ข้อสอบบทนี้ให้ระบุว่าสถานการณ์ตรงกับอะไร: การทดสอบระดับไหน ([[unit]], [[integ]], [[systest]]), เปลี่ยนระบบแบบไหน ([[direct]], [[parallel]], [[pilot]], [[phased]]), บำรุงรักษาแบบไหน ([[corrective]], [[adaptive]], [[perfective]], [[preventive]]) และบางครั้งให้อธิบายขั้นตอนติดตั้ง อบรม แปลงข้อมูล และรายงานหลังติดตั้ง ลำดับของบทคือเส้นทางจากระบบที่เขียนเสร็จ ไปจนถึงระบบที่ใช้งานจริงและมีคนดูแลต่อ</p>
+  </div>
+
+  <div class="fig map" id="map"></div>
+
+  <section class="idea col" id="s-tools">
+    <h2>เครื่องมือสร้างระบบ: ข้อมูลหนึ่งแบบ ตรรกะสี่แบบ<span class="en">Application development tools</span></h2>
+    <p class="key">[[devtools|เครื่องมือพัฒนาระบบ]]ในสไลด์มีห้าอย่าง แบ่งตามหน้าที่ได้สองกลุ่ม: [[erd]] อธิบาย<b>ข้อมูล</b> ส่วน [[flowchart]], [[pseudocode]], [[dtable]] และ [[dtree]] อธิบาย<b>ตรรกะ</b> คือระบบตัดสินใจและทำงานตามลำดับอย่างไร</p>
+    <p>สี่อย่างหลังเล่าตรรกะเรื่องเดียวกันคนละรูปแบบ ตัวอย่างคือกติกาส่วนลดของร้านค้า: ซื้อครบ 1,000 บาทและเป็นสมาชิกลด 10%, ซื้อครบ 1,000 บาทแต่ไม่เป็นสมาชิกลด 5%, ซื้อไม่ถึง 1,000 บาทไม่ลด ปรับยอดซื้อกับสถานะสมาชิก แล้วสลับดูว่าเส้นทางเดียวกันถูกอ่านอย่างไรในแต่ละแบบ</p>
+    <div class="fig in-col" id="fig-tools"></div>
+    <div id="q-tools"></div>
+  </section>
+
+  <section class="idea col" id="s-test">
+    <h2>ทดสอบสามระดับ: จากชิ้นเดียวไปทั้งระบบ<span class="en">Unit, integration, system testing</span></h2>
+    <p class="key">การทดสอบทำจากเล็กไปใหญ่: [[unit]] ทดสอบโมดูลทีละตัว, [[integ]] ทดสอบโมดูลหลายตัวที่ทำงานร่วมกัน, [[systest]] ทดสอบระบบทั้งหมดรวมกัน</p>
+    <p>ถ้าข้อผิดพลาดโผล่ตอนทดสอบทั้งระบบ จะไม่รู้ว่าอยู่ที่ชิ้นไหน จึงเริ่มจากชิ้นที่เล็กที่สุดก่อน ลากแถบเพื่อซูมออกจากโมดูลเดียวไปจนเห็นทั้งระบบ</p>
+    <div class="fig" id="fig-test"></div>
+    <div id="q-test"></div>
+  </section>
+
+  <section class="idea col" id="s-install">
+    <h2>ติดตั้ง: ซ้อมในที่ทดสอบก่อนใช้จริง<span class="en">Installation, evaluation, test vs operational environment</span></h2>
+    <p class="key">หลังทดสอบระบบแล้ว สไลด์ให้ทำอีก 5 ขั้นก่อน[[install|ติดตั้งและประเมินผล]] ขั้นแรกคือเตรียม [[testenv]] ซึ่งต่างจาก [[opsenv]] ที่ใช้ข้อมูลจริงและผู้ใช้จริง</p>
+    <p>สภาพแวดล้อมทดสอบต้องเตรียมฮาร์ดแวร์ ซอฟต์แวร์ และระบบสื่อสารให้พร้อม ลากแถบเพื่อดูว่าแต่ละขั้นเพิ่มอะไรเข้ามา</p>
+    <div class="fig" id="fig-install"></div>
+    <div id="q-install"></div>
+  </section>
+
+  <section class="idea col" id="s-train">
+    <h2>อบรม: ใครเรียน และใครสอน<span class="en">Training plan, vendor / outside / in-house</span></h2>
+    <p class="key">[[training|แผนการอบรม]]เริ่มจากคิดว่าจะอบรมใคร ปกติมี 3 กลุ่ม คือ [[tr_users]], [[tr_mgr]] และ [[tr_it]] จากนั้นเลือกผู้สอน: [[trvendor|เจ้าของซอฟต์แวร์]], [[troutside|แหล่งอบรมภายนอก]] หรือ [[trinhouse|จัดเองในองค์กร]]</p>
+    <p>เลือกกลุ่มและผู้สอนอย่างละหนึ่ง ดูว่าเนื้อหาและรูปแบบเปลี่ยนไปอย่างไร</p>
+    <div class="fig in-col" id="fig-train"></div>
+    <div id="q-train"></div>
+  </section>
+
+  <section class="idea col" id="s-conv">
+    <h2>แปลงข้อมูลจากระบบเก่า<span class="en">Data conversion</span></h2>
+    <p class="key">[[dconv]] คือการย้ายข้อมูลเก่าเข้าระบบใหม่ ทำสามขั้น: [[dc_export|export]] ข้อมูลออกจากระบบเก่า, แปลงให้ระบบใหม่อ่านได้ถ้าจำเป็น (ต้องเขียน[[dc_prog|โปรแกรมแปลง]]), แล้ว[[dc_verify|ตรวจสอบ]]ว่าข้อมูลในระบบใหม่ถูกต้อง</p>
+    <p>ขั้นกลางขึ้นอยู่กับว่าระบบเก่า export ในรูปแบบที่ระบบใหม่รู้จักหรือไม่ สลับสองกรณี แล้วลากแถบดูข้อมูลไหลจากซ้ายไปขวา</p>
+    <div class="fig" id="fig-conv"></div>
+    <div id="q-conv"></div>
+  </section>
+
+  <section class="idea col" id="s-over">
+    <h2>เปลี่ยนระบบ 4 วิธี: เสี่ยงกับค่าใช้จ่ายต้องแลกกัน<span class="en">System changeover</span></h2>
+    <p class="key">[[changeover]] มี 4 แบบ ต่างกันที่ว่าเปลี่ยนพร้อมกันหมดหรือทีละส่วน และมีระบบเก่าคอยสำรองหรือไม่: [[direct]] เปลี่ยนทั้งหมดทันที, [[parallel]] รันสองระบบพร้อมกันก่อน, [[pilot]] ลองที่หน่วยเดียวก่อน, [[phased]] เปลี่ยนทีละโมดูล</p>
+    <p>บริษัทตัวอย่างมีงาน 3 ส่วน แถบเทาคือเวลาที่ใช้ระบบเก่า แถบสีคือระบบใหม่ เลือกวิธีแล้วเลื่อนเส้นเวลา ลองสลับเป็น &ldquo;ระบบใหม่มีบั๊ก&rdquo; ตอนเวลาต่างๆ เพื่อดูว่างานส่วนไหนหยุดชะงัก</p>
+    <div class="fig" id="fig-over"></div>
+    <p>กราฟสองอันนี้คำนวณจากเส้นเวลาด้านบน ความเสี่ยงนับว่าในวันเปลี่ยน มีกี่ส่วนที่ถูกสลับไประบบใหม่พร้อมกันโดยไม่มีระบบเก่าสำรอง ส่วนค่าใช้จ่ายเพิ่มนับเดือนที่ต้องรันสองระบบซ้อนกัน</p>
+    <div class="fig" id="fig-risk"></div>
+    <div id="q-over"></div>
+  </section>
+
+  <section class="idea col" id="s-post">
+    <h2>หลังติดตั้ง: รายงานและการสนับสนุนผู้ใช้<span class="en">Post-implementation tasks, user support</span></h2>
+    <p class="key">[[postimpl|งานหลังติดตั้ง]]มีสองอย่าง: ทำ[[finalrep|รายงานฉบับสุดท้าย]]ถึงฝ่ายบริหาร และ[[usersupport|สนับสนุนผู้ใช้]]ต่อเนื่อง ผ่านการอบรม [[helpdesk]] และบางองค์กรจ้างผู้ให้บริการภายนอก ([[outsrc]])</p>
+    <div class="fig in-col" id="fig-post"></div>
+    <div id="q-post"></div>
+  </section>
+
+  <section class="idea col" id="s-maint">
+    <h2>บำรุงรักษา 4 แบบ<span class="en">Maintenance: corrective, adaptive, perfective, preventive</span></h2>
+    <p class="key">[[maint]] คืองานดูแลระบบหลังใช้งานจริง มี 4 แบบ: [[corrective]] ซ่อมที่พัง, [[adaptive]] เพิ่มความสามารถหรือทำให้ใช้ง่ายขึ้น, [[perfective]] ทำให้เร็วขึ้นหรือดูแลง่ายขึ้นโดยไม่เพิ่มฟังก์ชัน, [[preventive]] วิเคราะห์แล้วจัดการก่อนปัญหาเกิด</p>
+    <p>สถานการณ์ที่สับสนที่สุดคือ corrective กับ preventive (เกี่ยวกับปัญหาทั้งคู่ แต่เกิดแล้วหรือยัง) และ adaptive กับ perfective (ปรับปรุงทั้งคู่ แต่เพิ่มสิ่งที่ผู้ใช้เห็น หรือทำข้างในให้ดีขึ้น) จัดสถานการณ์ลงช่องที่ถูก</p>
+    <div class="fig" id="fig-maint"></div>
+    <div id="q-maint"></div>
+  </section>
+
+  <a class="next" href="exam.html"><div class="s">บทถัดไป</div><div class="t">ข้อสอบจำลอง <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div></a>
+</main>
+<script src="assets/core.js"></script>
+<script src="assets/deliver-concepts.js"></script>
+<script src="deliver.js"></script>
+</body>
+</html>

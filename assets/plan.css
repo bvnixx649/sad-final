@@ -1,0 +1,108 @@
+/* Chapter 1: networks, gantt morph, tables */
+.net { display: block; width: 100%; height: auto; overflow: visible; }
+.net .ed path { fill: none; stroke: var(--line-2); stroke-width: 2.4; transition: stroke 260ms ease, stroke-width 260ms ease, opacity 260ms ease; }
+.net .ed polygon { fill: var(--line-2); transition: fill 260ms ease, opacity 260ms ease; }
+.net .ed.dummy path { stroke-dasharray: 5 6; }
+.net .ed .el { font: 600 14px var(--mono); fill: var(--c-amber); text-anchor: middle; dominant-baseline: middle; transition: fill 260ms ease; }
+.net .ed .elbg { fill: var(--band); }
+.net .ed.crit path { stroke: var(--c-rose); stroke-width: 3.2; } .net .ed.crit polygon { fill: var(--c-rose); }
+.net .ed.hl path { stroke: var(--c-blue); stroke-width: 3.6; } .net .ed.hl polygon { fill: var(--c-blue); }
+.net .ed.dim { opacity: .28; }
+.net .nd rect, .net .nd circle.b { fill: var(--surface); stroke: var(--line-2); stroke-width: 2; transition: stroke 260ms ease, fill 260ms ease, opacity 260ms ease; }
+.net .nd .id { font: 700 20px var(--font); fill: var(--ink); text-anchor: middle; dominant-baseline: middle; }
+.net .nd .du { font: 600 14px var(--mono); fill: var(--c-amber); text-anchor: middle; dominant-baseline: middle; transition: fill 200ms ease; }
+.net .nd .sb { font: 500 13px var(--mono); fill: var(--muted); text-anchor: middle; dominant-baseline: middle; }
+.net .nd.ev .id { font-size: 17px; }
+.net .nd.cap .id { font: 600 14px var(--font); fill: var(--muted); }
+.net .nd.crit rect, .net .nd.crit circle.b { stroke: var(--c-rose); stroke-width: 2.6; }
+.net .nd.hl rect, .net .nd.hl circle.b { stroke: var(--c-blue); fill: var(--c-blue-s); stroke-width: 2.6; }
+.net .nd.dim { opacity: .35; }
+.net .nd.tap { cursor: pointer; }
+.net .nd.tap:active rect { fill: var(--surface-2); }
+.net .nd.pop rect { animation: ndpop 420ms var(--ease); transform-box: fill-box; transform-origin: center; }
+@keyframes ndpop { 0% { transform: scale(1); } 35% { transform: scale(1.12); } 100% { transform: scale(1); } }
+.net .nd.done .du { fill: var(--muted); }
+.net .slk { font: 600 13px var(--mono); }
+.net .slk rect { fill: var(--c-green-s); stroke: none; }
+.net .slk text { fill: var(--c-green); text-anchor: middle; dominant-baseline: middle; }
+.net .hot { cursor: pointer; }
+
+/* flow */
+.flow { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 10px; align-items: stretch; }
+.flow .stage { background: var(--surface); border-radius: 20px; padding: 16px; opacity: 0; transform: translateY(10px); transition: opacity 420ms ease, transform 520ms var(--ease); }
+.flow.on .stage { opacity: 1; transform: none; }
+.flow.on .stage:nth-of-type(2) { transition-delay: 160ms; } .flow.on .stage:nth-of-type(3) { transition-delay: 320ms; }
+.flow .stage h4 { margin: 0 0 10px; font-size: 16px; font-weight: 700; }
+.flow .stage .it { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 8px 10px; border-radius: 12px; font-size: 15px; line-height: 1.4; color: var(--ink-2); }
+.flow .stage button.it:hover { background: var(--surface-2); }
+.flow .stage .it i { width: 10px; height: 10px; border-radius: 50%; background: var(--tc, var(--muted)); flex: none; }
+.flow .ar { align-self: center; color: var(--muted); }
+.flow .ar svg { width: 24px; height: 24px; }
+@media (max-width: 760px) { .flow { grid-template-columns: 1fr; } .flow .ar { justify-self: center; transform: rotate(90deg); } }
+
+/* wbs tree */
+.wbs { font-size: 16px; }
+.wbs .row { display: flex; align-items: center; gap: 10px; }
+.wbs .nodeb { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 14px; background: var(--surface); font-weight: 600; transition: background-color 200ms ease; }
+.wbs .nodeb.root { background: var(--c-teal-s); color: var(--c-teal); font-size: 17px; }
+.wbs .nodeb svg { width: 16px; height: 16px; transition: transform 300ms var(--ease); color: var(--muted); }
+.wbs .open > .row .nodeb svg { transform: rotate(90deg); }
+.wbs .leaf { display: inline-flex; align-items: center; min-height: 38px; padding: 0 14px; border-radius: 12px; background: var(--surface); color: var(--ink-2); font-size: 15px; }
+.wbs .kids { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 380ms var(--ease); margin-left: 22px; border-left: 2px solid var(--line-2); padding-left: 16px; }
+.wbs .kids > div { overflow: hidden; display: flex; flex-direction: column; gap: 8px; }
+.wbs .open > .kids { grid-template-rows: 1fr; }
+.wbs .open > .kids > div { padding: 8px 0 4px; }
+.wbs .lvl { display: flex; flex-direction: column; gap: 8px; }
+
+/* gantt morph */
+.morph .bar { transition: none; }
+.morph .bar rect { fill: var(--c-teal-s); stroke: var(--c-teal); stroke-width: 2; }
+.morph .bar text { font: 700 17px var(--font); fill: var(--ink); dominant-baseline: middle; text-anchor: middle; }
+.morph .bar .bd { font: 600 13px var(--mono); fill: var(--c-amber); }
+.morph .axis text { font: 500 12px var(--mono); fill: var(--muted); text-anchor: middle; }
+.morph .axis line { stroke: var(--line); }
+
+/* tables */
+.tw { overflow-x: auto; scrollbar-width: thin; margin: 0 -4px; padding: 0 4px; }
+table.t { border-collapse: collapse; width: 100%; font: 500 15px/1.4 var(--mono); }
+table.t th { font: 600 13px var(--font); color: var(--muted); text-align: right; padding: 8px 10px; white-space: nowrap; border-bottom: 1px solid var(--line-2); }
+table.t th:first-child, table.t td:first-child { text-align: left; }
+table.t td { padding: 9px 10px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; transition: background-color 220ms ease, color 220ms ease, opacity 300ms ease; }
+table.t tr.tap { cursor: pointer; }
+table.t tr.tap:hover td { background: var(--surface); }
+table.t tr.on td { background: var(--c-violet-s); }
+table.t td.v { color: var(--c-violet); font-weight: 700; }
+table.t td.a { color: var(--c-amber); font-weight: 700; }
+table.t td.c, table.t td .c { color: var(--c-rose); font-weight: 700; }
+table.t td.g { color: var(--c-green); font-weight: 700; }
+table.t td.t2 { color: var(--c-teal); font-weight: 600; }
+table.t td.mut { color: var(--muted); }
+table.t td.hide, table.t th.hide { opacity: 0; }
+table.t tr.used td { background: var(--c-teal-s); }
+table.t tr.cur td { background: var(--c-amber-s); }
+table.t tr.crit td:first-child { color: var(--c-rose); }
+table.t tr.total td { border-top: 1px solid var(--line-2); font-weight: 700; }
+table.t td.new { animation: cellin 520ms var(--ease); }
+@keyframes cellin { from { background: var(--accent-soft); } to { background: transparent; } }
+
+/* path chips + bars */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.pchip { height: 44px; padding: 0 16px; border-radius: 14px; background: var(--surface); font: 600 15px var(--mono); display: inline-flex; align-items: center; gap: 10px; transition: background-color 200ms ease, color 200ms ease; }
+.pchip b { color: var(--muted); font-weight: 600; }
+.pchip.crit b { color: var(--c-rose); }
+.pchip[aria-pressed="true"] { background: var(--c-blue-s); color: var(--c-blue); }
+.bars { display: grid; gap: 10px; margin-top: 16px; }
+.pbar { display: grid; grid-template-columns: 54px 1fr 44px; gap: 10px; align-items: center; font: 600 14px var(--mono); }
+.pbar .tr { height: 14px; border-radius: 7px; background: var(--surface-2); position: relative; overflow: hidden; }
+.pbar .fl { position: absolute; inset: 0 auto 0 0; border-radius: 7px; background: var(--c-blue); transition: width 520ms var(--ease), background-color 260ms ease; }
+.pbar.crit .fl { background: var(--c-rose); }
+.pbar .n { text-align: right; transition: color 260ms ease; }
+.pbar.crit .n { color: var(--c-rose); }
+.stats { display: flex; flex-wrap: wrap; gap: 10px 28px; margin-top: 16px; }
+.stat .k { font-size: 13px; color: var(--muted); }
+.stat .v { font: 700 26px var(--mono); letter-spacing: -.02em; }
+.stat .v.r { color: var(--c-rose); } .stat .v.p { color: var(--c-violet); }
+.stat .v small { font-size: 14px; color: var(--muted); font-weight: 500; }
+.sbx-say { min-height: 3.4em; }
+.fig .say b.r { color: var(--c-rose); } .fig .say b.p { color: var(--c-violet); } .fig .say b.g { color: var(--c-green); } .fig .say b.a { color: var(--c-amber); } .fig .say b.b { color: var(--c-blue); } .fig .say b.t { color: var(--c-teal); }
+@media (max-width: 520px) { table.t .nm { display: none; } }
